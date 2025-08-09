@@ -1,0 +1,1 @@
+POSH.say( POSH.args[1] + "\n");

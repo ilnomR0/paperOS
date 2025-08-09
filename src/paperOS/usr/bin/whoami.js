@@ -1,0 +1,1 @@
+POSH.say(POSH.currentUser + "\n");

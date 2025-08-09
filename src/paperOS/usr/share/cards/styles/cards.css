@@ -1,0 +1,140 @@
+paperos-card {
+  color: white;
+  position: absolute;
+  overflow: hidden;
+  border-radius: 10px;
+  display:flex;
+  flex-direction:column;
+  box-sizing: border-box;
+}
+paperos-card.active > .application {
+  border-color: #2d0068; 
+}
+paperos-card.active > .titlebar {
+  background-color:#2d0068;
+}
+.application {
+  color: rgb(0, 0, 0);
+  width:100%;
+  background-color: white;
+  overflow: scroll;
+  flex-grow: 1;
+  user-select: text;
+  border:solid rgb(75, 75, 75) 7px;
+  border-top-style:none;
+  box-sizing:border-box;
+  flex-basis:0;
+}
+.iconSmall {
+  width: 1.5em;
+}
+button {
+  background-color: white;
+  border-color: black;
+  border-style: solid;
+  color: black;
+  border-radius: 20px;
+  padding: 2em;
+  margin: 7px;
+}
+.titlebarButton {
+  width: 1.5em;
+  padding: 0;
+  height: 1.5em;
+  position: relative;
+  float: right;
+  margin: 0;
+  margin-right: 0.5em;
+  border-style: none;
+  font-family:"inconsolata NF";
+}
+.close {
+  background-color: #ffd5d5;
+}
+.fullscreen {
+  background-color: #d5ffdb;
+}
+.minimize {
+  background-color: #fffcd5;
+}
+.titlebar {
+  height: 20px;
+  width: 100%;
+  padding: 0.25em;
+  display: flex;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background-color: rgb(75,75,75);
+}
+.title {
+  display: inline-block;
+  color: white;
+  overflow: hidden;
+  word-break:break-all;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-left:0.5em;
+  flex-grow: 1;
+  flex-basis:0;
+}
+.handleN {
+  cursor: ns-resize;
+  position: inherit;
+  width: 100%;
+  height: 7px;
+  left: 0;
+  top: 0;
+}
+.handleE {
+  cursor: ew-resize;
+  position: inherit;
+  width: 7px;
+  height: 100%;
+  right: 0;
+  top: 0;
+}
+.handleS {
+  cursor: ns-resize;
+  position: inherit;
+  width: 100%;
+  height: 7px;
+  left: 0;
+  bottom: 0;
+}
+.handleW {
+  cursor: ew-resize;
+  position: inherit;
+  width: 7px;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+.handleNE {
+  cursor: nesw-resize;
+  position: inherit;
+  top: 0;
+  right: 0;
+}
+.handleSW {
+  cursor: nesw-resize;
+  position: inherit;
+  bottom: 0;
+  left: 0;
+}
+.handleNW {
+  cursor: nwse-resize;
+  position: inherit;
+  left: 0;
+  top: 0;
+}
+.handleSE {
+  cursor: nwse-resize;
+  position: inherit;
+  bottom: 0;
+  right: 0;
+}
+.resizeHandleCorner {
+  width: 10px;
+  height: 10px;
+}

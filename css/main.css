@@ -1,0 +1,42 @@
+[contenteditable=true] {
+    outline: none;
+    border: 1px solid transparent;
+}
+
+*:not(.application) {
+    user-select: none;
+}
+::selection {background: rgba(255, 103, 103, 0.514);color:black;}
+::-moz-selection { background: rgba(255, 103, 103, 0.514);color:black; }
+
+body {
+    overflow: scroll;
+    background-color: black;
+    color: white;
+    font-family: monospace;
+    font-size: larger;
+    margin: 0;
+    padding: 0;
+}
+
+.rapidBlink {
+    animation: blinker 1s step-start infinite;
+}
+
+.slowBlink {
+    animation: blinker 1s linear infinite;
+}
+
+.strikethrough {
+    text-decoration-line: line-through;
+}
+
+.underline {
+    text-decoration-line: underline;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}

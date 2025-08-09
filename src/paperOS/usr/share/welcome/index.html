@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome!</title>
+</head>
+<body>
+    <center>
+        <h1>welcome to paperOS!</h1>
+        <p>paperOS is built ENTIRELY on POK (PaperOS Kernel, initially POSH3). This combines the power of POSH2, and put's it all on the web.<br>
+        If you would like to create an app, feel free to check out and modify <i>YOUR</i> copy of POSH. AKA the  PaperOsSHell! </p>
+        <button onclick="window.pok.executeFile('/usr/share/posh/lib/poshInit.js')">open POSH</button>
+        <button onclick = "indexedDB.deleteDatabase('FS'); location.reload();">reset paperOS to factory settings</button>
+    </center>
+</body>
+</html>

@@ -1,0 +1,32 @@
+    [contenteditable=true] {
+        outline: none;
+        border: 1px solid transparent;
+    }
+
+
+    .rapidBlink {
+        animation: blinker 1s step-start infinite;
+    }
+
+    .slowBlink {
+        animation: blinker 1s linear infinite;
+    }
+
+    .strikethrough {
+        text-decoration-line: line-through;
+    }
+
+    .underline {
+        text-decoration-line: underline;
+    }
+
+    @keyframes blinker {
+        50% {
+            opacity: 0;
+        }
+    }
+* {
+    user-select: text;
+}
+::selection {background: rgba(255, 103, 103, 0.514);color:black;}
+::-moz-selection { background: rgba(255, 103, 103, 0.514);color:black; }
