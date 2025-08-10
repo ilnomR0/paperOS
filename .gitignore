@@ -1,0 +1,3 @@
+./node_modules/
+./frontend/builds/
+./frontend/eslint.config.mjs
