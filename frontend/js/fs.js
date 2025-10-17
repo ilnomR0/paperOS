@@ -1,4 +1,5 @@
 export class FS {
+    
     constructor(fileSystem) {
         /**
          * @type {IDBDatabase}
@@ -6,6 +7,12 @@ export class FS {
         this.fileSystem = fileSystem;
 
     }
+
+
+
+  //formats the location to be pure
+
+
     /**
      * 
      * @param {string} location
@@ -30,12 +37,29 @@ formatLocation(location) {
 
         return "/" + stack.join("/");
     }
+
+    //creates files in the indexedDB file system
+
     async createFile(location) {
         location = this.formatLocation(location);
         let fsTransaction = this.fileSystem.transaction("files", "readwrite");
         var fsObject = fsTransaction.objectStore("files");
         fsObject.put({ location, data: ""});
     }
+
+    //deletes files in the indexedDB file system
+
+    async deleteFile(location){
+
+      location = this.formatLocation(location);
+
+      let fsTransaction = this.fileSystem.transaction("files", "readwrite");
+      var fsObject = fsTransaction.objectStore("files");
+      fsObject.delete({ location});
+    
+    }
+
+    //writes to files in indexedDB file system
 
     async writeFile(location, data) {
         location = this.formatLocation(location);
@@ -45,6 +69,9 @@ formatLocation(location) {
         let fsObject = this.fileSystem.transaction("files", "readwrite").objectStore("files");
         return fsObject.put({ location, data: data });
     }
+
+    //reads files in indexed DB file system
+
     async readFile(location) {
 
         location = this.formatLocation(location);
@@ -62,6 +89,9 @@ formatLocation(location) {
 
         });
     }
+
+    //searches through folders
+
     async readFolder(location) {
         location = this.formatLocation(location);
         const results = [];
