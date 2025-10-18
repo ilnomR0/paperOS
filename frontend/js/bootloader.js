@@ -4,6 +4,7 @@ import * as fflate from "https://cdn.skypack.dev/fflate@0.8.2?min";
 export class POK {
   constructor(text_framebuffer) {
     this.fileSystem = null;
+    this.VfileSystem = [];
     /**
      * @type {HTMLDivElement}
      */
@@ -25,8 +26,9 @@ export class POK {
 
     request.onsuccess = async (e) => {
       const db = e.target.result;
-      console.log("successfully loaded");
+      console.log("successfully loaded, ", db.name);
 
+      this.VfileSystem = localStorage.getItem(db.name);
       this.fileSystem = new FS(db);
       this.main();
     };

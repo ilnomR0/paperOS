@@ -7,6 +7,7 @@ export class FS {
     this.fileSystem = fileSystem;
     this.VFileSystem = [];
 
+    
 
   }
 
@@ -51,7 +52,7 @@ export class FS {
 
   //deletes files in the indexedDB file system
 
-  async deleteFile(location){
+  async delete(location){
     location = this.formatLocation(location);
     console.log(`deleting ${location}...   |   ${location} is a ${location.endsWith("/") ? "folder" : "file"}`);
 
@@ -130,8 +131,8 @@ export class FS {
           if (path.startsWith(location)) {
 
             const subPath = path.substring(location.length);
-            console.log("fs.js : ", path, subPath);
-            if(subPath != ""){
+            console.log(`fs.js | input location: ${location}   | path: ${path}  |  subpath: ${subPath} `);
+            if(subPath != "" && !results.includes(subPath)){
               results.push({
                 "name" : subPath.replace(/\/.*/g, ""),
                 "type" : subPath.endsWith("/") ? "folder" : "file"
@@ -143,6 +144,7 @@ export class FS {
           const uniqueByName = Array.from(
             new Map(results.map(obj => [obj.name, obj])).values()
           );
+          console.log(`final:`, uniqueByName);
           resolve(uniqueByName);
         }
       }
