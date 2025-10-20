@@ -8,15 +8,15 @@ export class File {
         this.parent = self;
         this.location = location;
         this.name = name;
-        
+
     }
     async writeData(data) {
         this.blob = data;
-        this.url = URL.createObjectURL(this.blob);
-        
-        let res = await fetch(this.url);
+        const res = new Response(this.blob, {
+            headers: { "Content-Type": this.blob.type || "application/octet-stream" }
+        });
         await this.parent.cacheFS.put(this.location + "/" + this.name, res);
-        URL.revokeObjectURL(this.url);
+
     }
 
     async readData() {

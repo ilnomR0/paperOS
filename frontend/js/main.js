@@ -14,26 +14,38 @@ function fetchDataPrg(received, total, percentage) {
 
 }
 
-function fetchDataEnd(){
+function fetchDataEnd() {
     newTerm.say("\n | file begotten! Constructing the FileSystem...\n");
 }
 
 function writeData(zipLocations, fileNum) {
-
-    let baseText = ` | writing ${zipLocations[fileNum].slice(0, newTerm.columns.value/2)}  [${fileNum+1} / ${zipLocations.length}]   |`;
-    let tailText = `|   ${Math.round((fileNum / zipLocations.length)*100)}%`;
+    let baseText = ` | writing ${zipLocations[fileNum].slice(0, newTerm.columns.value / 2)}  [${fileNum + 1} / ${zipLocations.length}]   |`;
+    let tailText = `|   ${Math.round((fileNum / zipLocations.length) * 100)}%`;
     let spaceLength = newTerm.columns.value - (baseText.length + tailText.length);
-    let barLength = spaceLength * (fileNum / zipLocations.length);
-    let barStr = "="
-    newTerm.currentLine = newTerm.rows.value - 1;
+    let barChar = "="
+    let barStr = barChar.repeat((newTerm.columns.value - tailText.length - baseText.length) * (fileNum / zipLocations.length));
+    let spaceStr = " ".repeat((newTerm.columns.value - tailText.length - baseText.length) - barStr.length)
     newTerm.say(`\n${baseText}${" ".repeat(spaceLength)}`);
-    newTerm.getLine(newTerm.rows.value).innerText = `${baseText}${barStr.repeat((newTerm.columns.value-tailText.length-baseText.length) * (fileNum / zipLocations.length))}${tailText}`;
+    if (newTerm.currentLine >= newTerm.rows.value - 1) {
+        newTerm.currentLine = newTerm.rows.value - 2;
+        newTerm.scroll();
+        newTerm.getLine(newTerm.rows.value - 1).innerText = `|${'-'.repeat(newTerm.columns.value - 2)}|`;
+    }
+    newTerm.getLine(newTerm.rows.value).innerText = `${baseText}${barStr}${spaceStr}${tailText}`;
 }
 
 
 //creating terminal & resizing to fit screen
-let newTerm = new POSH(document.querySelector("body"));
 
+/**
+ *@type { POSH }
+ */
+window.newTerm = new POSH(document.querySelector("body"));
+
+/**
+ *@type {POSH}
+ */
+let newTerm = window.newTerm;
 newTerm.resizeToContainer();
 
 window.addEventListener("resize", newTerm.resizeToContainer.bind(newTerm));
@@ -46,6 +58,6 @@ newTerm.say("hello world!\nhow are you?\nprogress of reading /builds/paperOS/zip
 //getting and displaying the progress of retrieving the file paperOS.zip
 //using the fromZipFile thing
 
-let newFS = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
-
+window.newFS = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
+let newFS = window.newFS;
 window.testFile = new newFS.Folder("/", "root");

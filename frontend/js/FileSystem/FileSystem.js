@@ -22,17 +22,36 @@ export class FileSystem {
                 super(self, location, name);
             }
         }
-
-        this.name = name;
-        this.virtualFS = [];
-        //create and/or open a cache system
         
-        this.cacheFS = caches.open(this.name);
+        this.name = name;
+        /**
+         * @type {IDBDatabase}
+         */
+        this.PFS;
+        //create and/or open a cache system
+        (async () => {
+            this.cacheFS = await caches.open(this.name);
+            
+            //set up indexed DB for true structure
+            
+            const req = window.indexedDB.open(this.name, 1);
+            
+            req.onerror = async (e) => {
+                console.error(`ERROR:`, e.target.error?.message);
+            }
+            req.onupgradeneeded = async (e) => {
+                this.PFS = e.target.result;
+                console.log("upgrade required");
+                this.PFS.createObjectStore(this.name, {keyPath: "location"});
+            }
+            req.onsuccess = async (e) => {
+             
+            }
+        })()
 
 
 
     }
-
 
 
     static async progressFetch(URL, prgUse = (received, total, percentage, prevPercentage) => {
@@ -85,27 +104,27 @@ export class FileSystem {
     //formatLocation. For formatting a string. For example, an input of "/usr/bin/../.." would format to "/"
     static formatLocation(location) {
         location = String(location).replace(/(.*\/)\//gm, "/");
-            const parts = location.split("/");
+        const parts = location.split("/");
 
-            const stack = [];
+        const stack = [];
 
-            for (let i = 0; i < parts.length; i++) {
+        for (let i = 0; i < parts.length; i++) {
 
-                if ((parts[i] === "" && i != parts.length - 1) || parts[i] === ".") {
-                    continue;
-                } else if (parts[i] === "..") {
-                    if (stack.length > 0) stack.pop();
-                } else {
-                    stack.push(parts[i]);
-                }
+            if ((parts[i] === "" && i != parts.length - 1) || parts[i] === ".") {
+                continue;
+            } else if (parts[i] === "..") {
+                if (stack.length > 0) stack.pop();
+            } else {
+                stack.push(parts[i]);
             }
-
-            return "/" + stack.join("/");
         }
+
+        return "/" + stack.join("/");
+    }
 
     //from zip file. Creates a new FileSystem based off of a zip file. 
 
-    static async fromZipFile(location, prgUseFetch, prgDoneFetch, prgWrite = (zipLocations, fileNum)=>{
+    static async fromZipFile(location, prgUseFetch, prgDoneFetch, prgWrite = (zipLocations, fileNum) => {
         console.log(`writing to indexedDB ${zipLocations[fileNum]}   [${fileNum}/${zipLocations.length}]`);
     }) {
 
@@ -129,7 +148,7 @@ export class FileSystem {
             if (file.endsWith("/")) {
                 type = "folder";
             } else {
-        this.cacheFS = caches.open(this.name);
+                this.cacheFS = caches.open(this.name);
                 type = "file";
             }
 
@@ -139,26 +158,27 @@ export class FileSystem {
         console.log(`zip file ${location}'s data: `, zipFile);
 
         let newFileSys = new FileSystem("sda");
-
-        for(let fileNum = 0; fileNum < zipLocations.length; fileNum++){
+        let writeTasks = [];
+        for (let fileNum = 0; fileNum < zipLocations.length; fileNum++) {
             await new Promise(requestAnimationFrame);
             prgWrite(zipLocations, fileNum, zipFile);
             let file = zipFile[zipLocations[fileNum]];
 
             let fileLocation = zipLocations[fileNum].replace(/\/$/, "").split("/");
-            if(file.type == "folder"){
+            if (file.type == "folder") {
                 let fileName = fileLocation.pop();
                 file = new newFileSys.Folder(fileLocation.join("/"), fileName);
-            }else if(file.type == "file"){
+            } else if (file.type == "file") {
                 let fileName = fileLocation.pop();
                 /**
                  *@type {File}
                  */
                 file = new newFileSys.File(fileLocation.join("/"), fileName);
-                file.writeData(new Blob(zipFile[zipLocations[fileNum]].data)); 
+                writeTasks.push(file.writeData(new Blob([zipFile[zipLocations[fileNum]].data])));
             }
-        }
 
+        }
+        await Promise.all(writeTasks);
         return newFileSys;
     }
 }
