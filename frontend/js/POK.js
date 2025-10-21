@@ -30,7 +30,7 @@ export class POK {
         request.onsuccess = async (e) => {
             const db = e.target.result;
             console.log("successfully loaded, ", db.name);
-
+            
             this.VfileSystem = localStorage.getItem(db.name);
             this.fileSystem = new FS(db);
             this.main();

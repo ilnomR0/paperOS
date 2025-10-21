@@ -26,7 +26,7 @@ export class FileSystem {
         this.name = name;
         /**
          * @type {IDBDatabase}
-         */
+        */
         this.PFS;
         //create and/or open a cache system
         (async () => {
@@ -37,6 +37,7 @@ export class FileSystem {
             const req = window.indexedDB.open(this.name, 1);
             
             req.onerror = async (e) => {
+                
                 console.error(`ERROR:`, e.target.error?.message);
             }
             req.onupgradeneeded = async (e) => {
@@ -45,7 +46,8 @@ export class FileSystem {
                 this.PFS.createObjectStore(this.name, {keyPath: "location"});
             }
             req.onsuccess = async (e) => {
-             
+                this.PFS = e.target.result;
+                console.log(`successfully loaded `, this.name);
             }
         })()
 

@@ -2,15 +2,22 @@ import { FileSystem } from "./FileSystem.js";
 
 export class File {
     constructor(self, location, name) {
+        
         /**
          *@type {FileSystem}
          */
         this.parent = self;
         this.location = location;
+        this.parsedLocation = location.split("/");
+        this.parsedLocation.pop();
         this.name = name;
-
     }
     async writeData(data) {
+        let objStore = this.parent.PFS.transaction(this.parent.name, "readwrite");
+        let thing = objStore.
+
+        if(this.parent.PFS.)
+
         this.blob = data;
         const res = new Response(this.blob, {
             headers: { "Content-Type": this.blob.type || "application/octet-stream" }
