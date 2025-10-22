@@ -14,16 +14,24 @@ export class File {
     }
     async writeData(data) {
         let objStore = this.parent.PFS.transaction(this.parent.name, "readwrite");
-        let thing = objStore.
+        let folder = objStore.objectStore(this.parent.name).get(this.location);
+       
+        console.log(folder);
 
-        if(this.parent.PFS.)
+        folder.onerror = ()=>{
+            throw new Error(folder.error);
+        }
 
+        folder.onsuccess = async ()=>{
+            if(!folder.result){
+                throw new Error("ERROR: path does not exist");
+            }
         this.blob = data;
         const res = new Response(this.blob, {
             headers: { "Content-Type": this.blob.type || "application/octet-stream" }
         });
         await this.parent.cacheFS.put(this.location + "/" + this.name, res);
-
+        }
     }
 
     async readData() {

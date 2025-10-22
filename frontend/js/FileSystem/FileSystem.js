@@ -22,22 +22,22 @@ export class FileSystem {
                 super(self, location, name);
             }
         }
-        
+
         this.name = name;
         /**
          * @type {IDBDatabase}
-        */
+         */
         this.PFS;
         //create and/or open a cache system
         (async () => {
             this.cacheFS = await caches.open(this.name);
-            
+
             //set up indexed DB for true structure
-            
+
             const req = window.indexedDB.open(this.name, 1);
-            
+
             req.onerror = async (e) => {
-                
+
                 console.error(`ERROR:`, e.target.error?.message);
             }
             req.onupgradeneeded = async (e) => {
@@ -106,23 +106,23 @@ export class FileSystem {
     //formatLocation. For formatting a string. For example, an input of "/usr/bin/../.." would format to "/"
     static formatLocation(location) {
         location = String(location).replace(/(.*\/)\//gm, "/");
-        const parts = location.split("/");
+            const parts = location.split("/");
 
-        const stack = [];
+            const stack = [];
 
-        for (let i = 0; i < parts.length; i++) {
+            for (let i = 0; i < parts.length; i++) {
 
-            if ((parts[i] === "" && i != parts.length - 1) || parts[i] === ".") {
-                continue;
-            } else if (parts[i] === "..") {
-                if (stack.length > 0) stack.pop();
-            } else {
-                stack.push(parts[i]);
+                if ((parts[i] === "" && i != parts.length - 1) || parts[i] === ".") {
+                    continue;
+                } else if (parts[i] === "..") {
+                    if (stack.length > 0) stack.pop();
+                } else {
+                    stack.push(parts[i]);
+                }
             }
-        }
 
-        return "/" + stack.join("/");
-    }
+            return "/" + stack.join("/");
+        }
 
     //from zip file. Creates a new FileSystem based off of a zip file. 
 
@@ -150,7 +150,6 @@ export class FileSystem {
             if (file.endsWith("/")) {
                 type = "folder";
             } else {
-                this.cacheFS = caches.open(this.name);
                 type = "file";
             }
 
@@ -175,9 +174,13 @@ export class FileSystem {
                 /**
                  *@type {File}
                  */
+                try{
                 file = new newFileSys.File(fileLocation.join("/"), fileName);
                 writeTasks.push(file.writeData(new Blob([zipFile[zipLocations[fileNum]].data])));
-            }
+                }catch(error){
+                    throw new Error(error);
+                }
+                }
 
         }
         await Promise.all(writeTasks);

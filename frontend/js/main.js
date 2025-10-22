@@ -48,6 +48,23 @@ window.newTerm = new POSH(document.querySelector("body"));
 let newTerm = window.newTerm;
 newTerm.resizeToContainer();
 
+window.onerror = function (message, source, lineno, colno, error){
+    newTerm.getLine(0).innerText = `\n${message} ${source}, ${lineno}, ${colno}, ${error}`;
+    newTerm.getLine(0).style.backgroundColor = "red";
+    newTerm.getLine(0).style.color = "black";
+    
+    console.error("called using window.onerror");
+
+    return true;
+}
+
+window.addEventListener('error', (event)=>{
+    console.error("called using window.addEventListener");
+    newTerm.getLine(0).innerText = `\n${event}`;
+    newTerm.getLine(0).style.backgroundColor = "red";
+    newTerm.getLine(0).style.color = "black";
+});
+
 window.addEventListener("resize", newTerm.resizeToContainer.bind(newTerm));
 
 
@@ -57,7 +74,7 @@ newTerm.say("hello world!\nhow are you?\nprogress of reading /builds/paperOS/zip
 
 //getting and displaying the progress of retrieving the file paperOS.zip
 //using the fromZipFile thing
-
 window.newFS = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
 let newFS = window.newFS;
 window.testFile = new newFS.Folder("/", "root");
+
