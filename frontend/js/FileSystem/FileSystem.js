@@ -174,17 +174,13 @@ export class FileSystem {
                 /**
                  *@type {File}
                  */
-                try{
                 file = new newFileSys.File(fileLocation.join("/"), fileName);
                 writeTasks.push(file.writeData(new Blob([zipFile[zipLocations[fileNum]].data])));
-                }catch(error){
-                    throw new Error(error);
-                }
                 }
 
         }
-        await Promise.all(writeTasks);
-        return newFileSys;
+            await Promise.all(writeTasks);
+            return newFileSys;
     }
 }
 

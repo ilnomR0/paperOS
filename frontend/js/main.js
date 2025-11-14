@@ -1,7 +1,29 @@
 import { FileSystem } from "./FileSystem/FileSystem.js";
 import { POSH } from "./POSH/POSH.js";
 
+window.onerror = (message, source, lineno, colno, error)=>{
+    newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.say(`${error}\n`);
+    newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.say(`src:${source}\n`);
+    newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.say(`ln#:${lineno}\n`);
+    newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.say(`col#:${colno}\n`); 
 
+    return true;
+}
+
+/*
+window.addEventListener('error', (event)=>{
+    newTerm.getLine(0).innerText = `${event.error}`;
+    newTerm.getLine(0).style.backgroundColor = "red";
+    newTerm.getLine(0).style.color = "black";
+});*/
 //functions for creating file flavor text and information
 
 function fetchDataPrg(received, total, percentage) {
@@ -34,47 +56,33 @@ function writeData(zipLocations, fileNum) {
     newTerm.getLine(newTerm.rows.value).innerText = `${baseText}${barStr}${spaceStr}${tailText}`;
 }
 
-
-//creating terminal & resizing to fit screen
-
-/**
- *@type { POSH }
- */
 window.newTerm = new POSH(document.querySelector("body"));
 
 /**
  *@type {POSH}
  */
 let newTerm = window.newTerm;
-newTerm.resizeToContainer();
 
-window.onerror = function (message, source, lineno, colno, error){
-    newTerm.getLine(0).innerText = `\n${message} ${source}, ${lineno}, ${colno}, ${error}`;
-    newTerm.getLine(0).style.backgroundColor = "red";
-    newTerm.getLine(0).style.color = "black";
-    
-    console.error("called using window.onerror");
+//creating terminal & resizing to fit screen
+async function start(){
+    /**
+     *@type { POSH }
+     */
+    newTerm.resizeToContainer();
 
-    return true;
+
+    window.addEventListener("resize", newTerm.resizeToContainer.bind(newTerm));
+
+
+    //some dummmy text
+    newTerm.say("hello world!\nhow are you?\nprogress of reading /builds/paperOS/zip...\n\n");
+
+
+    //getting and displaying the progress of retrieving the file paperOS.zip
+    //using the fromZipFile thing
+    window.newFS = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
+    let newFS = window.newFS;
+    window.testFile = new newFS.Folder("/", "root");
 }
 
-window.addEventListener('error', (event)=>{
-    console.error("called using window.addEventListener");
-    newTerm.getLine(0).innerText = `\n${event}`;
-    newTerm.getLine(0).style.backgroundColor = "red";
-    newTerm.getLine(0).style.color = "black";
-});
-
-window.addEventListener("resize", newTerm.resizeToContainer.bind(newTerm));
-
-
-//some dummmy text
-newTerm.say("hello world!\nhow are you?\nprogress of reading /builds/paperOS/zip...\n\n");
-
-
-//getting and displaying the progress of retrieving the file paperOS.zip
-//using the fromZipFile thing
-window.newFS = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
-let newFS = window.newFS;
-window.testFile = new newFS.Folder("/", "root");
-
+await start();

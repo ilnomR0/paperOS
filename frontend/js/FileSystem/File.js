@@ -19,12 +19,12 @@ export class File {
         console.log(folder);
 
         folder.onerror = ()=>{
-            throw new Error(folder.error);
+            return new Error(folder.error);
         }
 
         folder.onsuccess = async ()=>{
-            if(!folder.result){
-                throw new Error("ERROR: path does not exist");
+            if(!folder.result){                                 //main error
+                window.reportError(new Error(`ERROR: path "${this.location}/" does not exist`));  //should exist in the vterm
             }
         this.blob = data;
         const res = new Response(this.blob, {
