@@ -30,6 +30,12 @@ export class FileSystem {
         this.PFS;
         //create and/or open a cache system
         (async () => {
+        })()
+
+
+
+    }
+    async initFS(){
             this.cacheFS = await caches.open(this.name);
 
             //set up indexed DB for true structure
@@ -49,12 +55,8 @@ export class FileSystem {
                 this.PFS = e.target.result;
                 console.log(`successfully loaded `, this.name);
             }
-        })()
-
-
 
     }
-
 
     static async progressFetch(URL, prgUse = (received, total, percentage, prevPercentage) => {
         if (prevPercentage != percentage) {
@@ -159,6 +161,7 @@ export class FileSystem {
         console.log(`zip file ${location}'s data: `, zipFile);
 
         let newFileSys = new FileSystem("sda");
+        await newFileSys.initFS();
         let writeTasks = [];
         for (let fileNum = 0; fileNum < zipLocations.length; fileNum++) {
             await new Promise(requestAnimationFrame);
@@ -168,14 +171,18 @@ export class FileSystem {
             let fileLocation = zipLocations[fileNum].replace(/\/$/, "").split("/");
             if (file.type == "folder") {
                 let fileName = fileLocation.pop();
-                file = new newFileSys.Folder(fileLocation.join("/"), fileName);
+                console.log(`writing ${fileName} to ${FileSystem.formatLocation(fileLocation.join("/"))}`);
+                file = new newFileSys.Folder(FileSystem.formatLocation(fileLocation.join("/")), fileName);
+                writeTasks.push(await file.init());
             } else if (file.type == "file") {
                 let fileName = fileLocation.pop();
                 /**
                  *@type {File}
                  */
-                file = new newFileSys.File(fileLocation.join("/"), fileName);
-                writeTasks.push(file.writeData(new Blob([zipFile[zipLocations[fileNum]].data])));
+                console.log(`writing ${fileName} to ${"/"+fileLocation.join("/")}`);
+
+                file = new newFileSys.File("/"+fileLocation.join("/"), fileName);
+                writeTasks.push(await file.writeData(new Blob([zipFile[zipLocations[fileNum]].data])));
                 }
 
         }

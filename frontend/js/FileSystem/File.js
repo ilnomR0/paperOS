@@ -2,7 +2,7 @@ import { FileSystem } from "./FileSystem.js";
 
 export class File {
     constructor(self, location, name) {
-        
+
         /**
          *@type {FileSystem}
          */
@@ -13,25 +13,30 @@ export class File {
         this.name = name;
     }
     async writeData(data) {
-        let objStore = this.parent.PFS.transaction(this.parent.name, "readwrite");
-        let folder = objStore.objectStore(this.parent.name).get(this.location);
-       
-        console.log(folder);
+        await new Promise((resolve, reject)=>{
+            console.log(this.parent);
+            let objTransaction = this.parent.PFS.transaction(this.parent.name, "readwrite");
+            let folder = objTransaction.objectStore(this.parent.name).get(this.location);
+            console.log(folder);
 
-        folder.onerror = ()=>{
-            return new Error(folder.error);
-        }
-
-        folder.onsuccess = async ()=>{
-            if(!folder.result){                                 //main error
-                window.reportError(new Error(`ERROR: path "${this.location}/" does not exist`));  //should exist in the vterm
+            folder.onerror = ()=>{
+                reject(new Error(folder.error));
             }
-        this.blob = data;
-        const res = new Response(this.blob, {
-            headers: { "Content-Type": this.blob.type || "application/octet-stream" }
+
+            folder.onsuccess = async ()=>{
+                if(!folder.result){
+                    let err = new Error(`ERROR: path "${this.location}/" does not exist\nwriting to ${this.parent.name} from ${this.name}`);
+                    window.reportError(err)//should exist in the vterm
+                    reject(err);
+                }
+                this.blob = data;
+                const res = new Response(this.blob, {
+                    headers: { "Content-Type": this.blob.type || "application/octet-stream" }
+                });
+                await this.parent.cacheFS.put(this.location + "/" + this.name, res);
+                resolve(folder.result);
+            }
         });
-        await this.parent.cacheFS.put(this.location + "/" + this.name, res);
-        }
     }
 
     async readData() {

@@ -2,8 +2,11 @@ import { FileSystem } from "./FileSystem/FileSystem.js";
 import { POSH } from "./POSH/POSH.js";
 
 window.onerror = (message, source, lineno, colno, error)=>{
+    newTerm.currentLine++;
     newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
     newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.getLine(newTerm.currentLine+1).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine+1).style.color = "black";
     newTerm.say(`${error}\n`);
     newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
     newTerm.getLine(newTerm.currentLine).style.color = "black";
