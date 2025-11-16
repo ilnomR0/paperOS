@@ -8,23 +8,30 @@ export class File {
          */
         this.parent = self;
         this.location = location;
-        this.parsedLocation = location.split("/");
-        this.parsedLocation.pop();
         this.name = name;
     }
+    static constructFromFull(self, locationFull){
+        let path = FileSystem.formatLocation(locationFull).split("/");
+        let name = path.pop();
+        path = path.join("/");
+        console.log(path, name); 
+        return new File(self, path, name); 
+    }
     async writeData(data) {
+        let children = [];
         await new Promise((resolve, reject)=>{
-            console.log(this.parent);
-            let objTransaction = this.parent.PFS.transaction(this.parent.name, "readwrite");
-            let folder = objTransaction.objectStore(this.parent.name).get(this.location);
+            console.log("parent node", this.parent);
+            let objStore = this.parent.PFS.transaction(this.parent.name, "readwrite").objectStore(this.parent.name);
+            let folder = objStore.get(this.location);
+
             console.log(folder);
 
             folder.onerror = ()=>{
                 reject(new Error(folder.error));
             }
 
-            folder.onsuccess = async ()=>{
-                if(!folder.result){
+            folder.onsuccess = async (e)=>{
+                if(!folder.result && FileSystem.formatLocation(this.location) != "/"){
                     let err = new Error(`ERROR: path "${this.location}/" does not exist\nwriting to ${this.parent.name} from ${this.name}`);
                     window.reportError(err)//should exist in the vterm
                     reject(err);
@@ -33,14 +40,21 @@ export class File {
                 const res = new Response(this.blob, {
                     headers: { "Content-Type": this.blob.type || "application/octet-stream" }
                 });
-                await this.parent.cacheFS.put(this.location + "/" + this.name, res);
+                await this.parent.cacheFS.put(FileSystem.formatLocation(this.location + "/" + this.name), res);
+                //update the children
+                children = e.target.result.children;
+                if(!children.includes(this.name)){
+                    children.push(this.name);
+                }
                 resolve(folder.result);
             }
         });
+            let objStore = this.parent.PFS.transaction(this.parent.name, "readwrite").objectStore(this.parent.name);
+            objStore.put({location:this.location, children}) 
     }
 
     async readData() {
-        let res = await caches.match(this.location + "/" + this.name);
+        let res = await caches.match(FileSystem.formatLocation(this.location + "/" + this.name));
         return res;
     }
 

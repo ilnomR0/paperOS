@@ -1,8 +1,11 @@
+//# sourceURL=boot/lib.js
 (async () => {
-    await window.pok.executeFile("/usr/bin/cards.js");
-    window.Cards = {
+    await window.paperOS.executeFile("/usr/bin","cards.js");
+    
+    paperOS.Cards = {
         parseDocument: async (location, ...defaultCSS) => {
-            let doc = await new DOMParser().parseFromString(await window.pok.fileSystem.readFileText(location), "text/html");
+            let docFile = await window.sda.File.constructFromFull(location).readData();
+            let doc = await new DOMParser().parseFromString(await docFile.text(), "text/html");
             if(defaultCSS){
                 for(let cssDefault of defaultCSS){
                     let sheet = document.createElement("link");
@@ -18,14 +21,14 @@
             for (const link of linkTags) {
                 const href = link.getAttribute("href");
                 if (!href.startsWith("http")) {
-                    const file = await window.pok.fileSystem.readFileText(href);
+                    const file = await window.sda.File.constructFromFull(href).readData();
 
-                    let modifiedCSS = file;
-                    const styleURLs = [...file.matchAll(/url\(["']?(.*?)["']?\)/gmi)];
+                    let modifiedCSS = await file.text();
+                    const styleURLs = [...modifiedCSS.matchAll(/url\(["']?(.*?)["']?\)/gmi)];
                     for (const match of styleURLs) {
-                        const originalPath = match[1];
+                        const originalPath = await window.sda.File.constructFromFull(match[1]).readData();
                         console.log(originalPath);
-                        const blob = URL.createObjectURL(await window.pok.fileSystem.readFileBin(originalPath));
+                        const blob = URL.createObjectURL(await originalPath.blob());
                         modifiedCSS = modifiedCSS.replaceAll(match[0], `url("${blob}")`);
                     }
 
@@ -38,9 +41,9 @@
                     let modifiedCSS = style.textContent;
                     const styleURLs = [...style.innerText.matchAll(/url\(["']?(.*?)["']?\)/gmi)];
                     for (const match of styleURLs) {
-                        const originalPath = match[1];
+                        const originalPath = await window.sda.File.constructFromFull(match[1]).readData();
                         console.log(originalPath);
-                        const blob = URL.createObjectURL(await window.pok.fileSystem.readFileBin(originalPath));
+                        const blob = URL.createObjectURL(await originalPath.blob());
                         modifiedCSS = modifiedCSS.replaceAll(match[0], `url("${blob}")`);
                     }
 
@@ -51,9 +54,9 @@
             return doc;
         }
     }
-    await window.pok.executeFile("/usr/bin/posh.js");
-    await window.pok.executeFile("/usr/bin/desk.js");
-    let parsedFonts =  await window.Cards.parseDocument("/etc/fonts/setFonts.html");
+    await paperOS.executeFile("/usr/bin","posh.js");
+    await paperOS.executeFile("/usr/bin","desk.js");
+    let parsedFonts =  await paperOS.Cards.parseDocument("/etc/fonts/setFonts.html");
     let fontsCss = document.createElement("style");
     fontsCss.innerText = parsedFonts.documentElement.querySelector("style").innerText;
     document.head.appendChild(fontsCss);

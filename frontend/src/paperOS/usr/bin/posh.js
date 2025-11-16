@@ -1,6 +1,7 @@
-(async () => {
-    window.PATH = JSON.parse(await window.pok.fileSystem.readFileText("/usr/share/posh/posh.json")).PATH;
-})();
+//# sourceURL=usr/bin/posh.js
+    let poshSettings = await new window.sda.File("/usr/share/posh", "posh.json").readData();
+    paperOS.PATH = (await poshSettings.json()).PATH;
+
 class posh {
     /**
      * 
@@ -9,9 +10,9 @@ class posh {
     constructor(wind) {
         this.terminal = wind.getElementsByClassName("application")[0].shadowRoot.getElementById("Terminal");
         this.wind = wind;
-        console.log(window.currentUsr);
-        this.currentUser = window.currentUsr;
-        this.workingDirectory = "/usr/bin/";
+        console.log(paperOS.currentUser);
+        this.currentUser = paperOS.currentUser;
+        this.workingDirectory = "/usr/bin";
         this.args = [];
         this.running = true;
     }
@@ -175,18 +176,23 @@ async say(text) {
     }
     async execCommand(location) {
         try {
-            let executableFile = "";
+            let executableFileLocation = "";
+            let executableFileName = "";
+            for (let i = 0; i < paperOS.PATH.split(":").length; i++) {
+                let fileToExec = await window.sda.File.constructFromFull(paperOS.PATH.split(":")[i] + location).readData();
+                if (typeof fileToExec != "undefined") {
 
-            for (let i = 0; i < window.PATH.split(":").length; i++) {
-                if (await window.pok.fileSystem.readFile(window.PATH.split(":")[i] + location)) {
-                    executableFile = window.PATH.split(":")[i] + location;
-                    i = window.PATH.split(":").length + 1;
+                    executableFileLocation = (paperOS.PATH.split(":")[i] + location).split("/");
+                    executableFileName = executableFileLocation.pop();
+                    executableFileLocation = executableFileLocation.join("/");
+                    i = paperOS.PATH.split(":").length + 1;
+                
                 }
             }
-            await window.pok.executeFile(executableFile, { POSH: this });
+
+            await paperOS.executeFile(executableFileLocation, executableFileName, { POSH: this });
         } catch (error) {
-            await this.say(`\u001b[38;2;255;0;0m${error}\n`);
-            console.error(error);
+            await this.say(`\u001b[38;2;255;0;0m${location}: ${error}\n`);
         }
 
     }

@@ -1,10 +1,13 @@
-try {
-    if (await window.pok.fileSystem.readFileText(window.pok.fileSystem.formatLocation(POSH.workingDirectory + POSH.args[1] + "/")) == "") {
-        POSH.workingDirectory += POSH.args[1] + "/";
-        POSH.workingDirectory = window.pok.fileSystem.formatLocation(POSH.workingDirectory);
-    }else{
-        throw new Error('Cannot CD into a file. Try "cat" if you want to look at a files contents');
-    }
-} catch (error) {
-    throw new Error(`cannot CD into nonexistant directory : ${error}`);
+let parentLocation = FileSystem.formatLocation(POSH.workingDirectory + "/"+ POSH.args[1]).split("/");
+let childLocation = parentLocation.pop();
+parentLocation = parentLocation.join("/");
+
+console.log(parentLocation, childLocation);
+
+let nextFolder = await new window.sda.Folder(parentLocation, childLocation).readChildren();
+if (typeof nextFolder != "undefined") {
+    POSH.workingDirectory += "/"+POSH.args[1];
+    POSH.workingDirectory = FileSystem.formatLocation(POSH.workingDirectory);
+}else{
+    throw new Error('Folder does not exist');
 }

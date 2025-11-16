@@ -1,3 +1,4 @@
+//# sourceURL=usr/share/posh/lib/poshInit.js
 (async () => {
 
     let poshVSession = await document.createElement("paperos-card");

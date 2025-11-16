@@ -1,7 +1,9 @@
+//# sourceURL=usr/bin/cards.js
 (async () => {
     //styles
     let styles = document.createElement("style");
-    styles.textContent = await window.pok.fileSystem.readFileText("/usr/share/cards/styles/cards.css");
+    let defaultStyles = await new window.sda.File("/usr/share/cards/styles", "cards.css").readData();
+    styles.textContent = await defaultStyles.text();
 
     document.head.appendChild(styles);
 })();
@@ -51,7 +53,10 @@ class cards extends HTMLElement {
         this.setAttribute("min-width", this.getAttribute("min-width") ?? 100);
         this.minWidth = Number(this.getAttribute("min-width"));
         this.setAttribute("icon", this.getAttribute("icon") ?? "/usr/share/cards/images/defaultAppIcon.png");
-        this.icon = URL.createObjectURL(await window.pok.fileSystem.readFileBin(this.getAttribute("icon")));
+        
+        let iconFile = await window.sda.File.constructFromFull(this.getAttribute("icon")).readData();
+
+        this.icon = URL.createObjectURL(await iconFile.blob());
         this.applicationLocation = this.getAttribute("applicationLocation");
 
         this.style.width = this.width + "px";
@@ -66,7 +71,7 @@ class cards extends HTMLElement {
         const application = applicationContainer.attachShadow({ mode: "open" });
         applicationContainer.setAttribute("class", "application");
 
-        const doc = await window.Cards.parseDocument(this.applicationLocation, "/usr/share/cards/styles/defaultApplication.css");
+        const doc = await paperOS.Cards.parseDocument(this.applicationLocation, "/usr/share/cards/styles/defaultApplication.css");
 
         this.title = (doc.querySelector("title")?.innerText ?? this.applicationLocation);
         applicationContainer.setAttribute("style", doc.body.getAttribute("style") ?? "");

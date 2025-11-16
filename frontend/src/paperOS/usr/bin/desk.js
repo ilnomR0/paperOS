@@ -1,9 +1,12 @@
+//# sourceURL=usr/bin/desk.js
 //background image
-let settings = await JSON.parse(await window.pok.fileSystem.readFileText(window.currentUsr == "root" ?
+let settingsFile = await window.sda.File.constructFromFull(window.paperOS.currentUser == "root" ?
     "/root/.conf/settings.json" :
-    `/home/${window.currentUsr}/.conf/settings.json`));
+    `/home/${window.currentUsr}/.conf/settings.json`).readData();
+let settings = await settingsFile.json();
 
-let imageBin = await URL.createObjectURL(await window.pok.fileSystem.readFileBin(settings.background));
+let imageFile = await window.sda.File.constructFromFull(settings.background).readData();
+let imageBin = await URL.createObjectURL(await imageFile.blob());
 
 document.body.style.backgroundImage = `URL(${imageBin}`;
 document.body.style.backgroundSize = 'cover';
@@ -14,17 +17,18 @@ document.body.style.backgroundAttachment = "fixed";
 
 (async () => {
     let style = document.createElement("style");
-    style.textContent = await window.pok.fileSystem.readFileText("/usr/share/desk/desk.css");
+    let deskCSSfile = await new window.sda.File("/usr/share/desk", "desk.css").readData();
+    style.textContent = await deskCSSfile.text();
     document.head.appendChild(style);
     console.log("desk: ", settings);
-    let applications = await window.pok.fileSystem.readFolder(settings.desktopApps);
+    //let applications = await window.pok.fileSystem.readFolder(settings.desktopApps);
 
-    console.log("desk: ", applications);
+    //console.log("desk: ", applications);
 
     let desktop = document.createElement("div");
     desktop.setAttribute("id", "desktop");
 
-    for (let applicationI = 0; applicationI < applications.length; applicationI++) {
+    /*for (let applicationI = 0; applicationI < applications.length; applicationI++) {
 
         let application = applications[applicationI];
 
@@ -33,7 +37,8 @@ document.body.style.backgroundAttachment = "fixed";
         applicationBtn.setAttribute("class", "desktopBtn");
 
         let applicationIcn = document.createElement("img");
-        applicationIcn.src = await URL.createObjectURL(await window.pok.fileSystem.readFileBin("/usr/share/cards/images/defaultAppIcon.png"));
+        let applicationIcnFile = await new window.sda.File("/usr/share/cards/images", "defaultAppIcon.png").readData();
+        applicationIcn.src = await URL.createObjectURL(await applicationIcnFile.blob());
         applicationIcn.style.width = "100%";
         applicationBtn.appendChild(applicationIcn);
         applicationBtn.textapplication;
@@ -61,7 +66,7 @@ document.body.style.backgroundAttachment = "fixed";
 
 
         desktop.appendChild(applicationBtn);
-    }
+    }*/
 
     document.body.appendChild(desktop);
 

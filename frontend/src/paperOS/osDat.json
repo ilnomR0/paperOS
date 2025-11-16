@@ -1,4 +1,5 @@
 {
     "OSName":"paperOS",
+    "BootLocation":"/boot/PSH/main.js",
     "OSLogoLocation":"/boot/PSH/PaperProductions.png"
 }

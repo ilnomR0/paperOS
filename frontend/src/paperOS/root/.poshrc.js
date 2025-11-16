@@ -1,3 +1,4 @@
+//# sourceURL=root/.poshrc.js
 (async()=>{
 
     POSH.HISTFILE = "/root/.histfile"

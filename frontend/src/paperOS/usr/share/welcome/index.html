@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome!</title>
-</head>
-<body>
-    <center>
-        <h1>welcome to paperOS! V.0.2!</h1>
-        <p>paperOS is built ENTIRELY on POK (PaperOS Kernel, initially POSH3). This combines the power of POSH2, and put's it all on the web.<br>
-        <h2>What is new?</h2>
-        
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome!</title>
+    </head>
+    <body style="background-color:rgba(255, 255, 255, 0.5); backdrop-filter:invert() blur(0px);">
+        <center>
+            <h1>welcome to paperOS V.0.2!</h1>
+            <p>paperOS is built ENTIRELY with javascript and javascript <i>alone</i>. Develop apps with the intuitive POK Kernel, have the flexibility of a cat at your fingertips; and really make your operating system <i>yours</i>.<br>
+            <h2>What is new?</h2>
+        </center>        
         <h3>1. Upgraded file system!</h3>
-                
-        <p>We are now using a cache system, so you can store even <i>more</i> files then you could previously</p>
-        
+
+        <p>We are now using a cache system, so you can store even <i>more</i> files then you could previously. Along with that; developers have an easier time accessing whatever files for their programs they would like! No longer do you have to go through window.pok.fileSystem.readFile to read files! Alongside with that; we have plans for allowing paperOS to read the files on your device; separated out into drives.<br> btw; firefox users; if you in the past have experienced any lag when using 'ls', don't worry! that's all gone now with the swith to the cache system. Enjoy browsing your files with speed and efficiency!</p>
+
         <h3>2. Added a Network Driver</h3>
-        <p>This allows users of the POK shell to access things outside of the network. </p>
-        <button onclick="window.pok.executeFile('/usr/share/posh/lib/poshInit.js')">open POSH</button>
-        <button onclick = "indexedDB.deleteDatabase('FS'); location.reload();">reset paperOS to factory settings</button>
-    </center>
-</body>
+        <p>We also have plans for a web browser and other internet related tasks; this is the first major step to achiving such a thing.</p>
+        <center>
+            <button onclick="paperOS.executeFile('/usr/share/posh/lib', 'poshInit.js')">open POSH</button>
+        </center>
+    </body>
 </html>

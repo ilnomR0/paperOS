@@ -1,13 +1,16 @@
+//# sourceURL=boot/PSH/main.js
 (async () => {
-    let bootloader = new Function(window.pok.decoder.decode(await window.pok.fileSystem.readFile("/boot/bootloader.js")));
-    console.log(bootloader);
+    let bootloader = await new window.sda.File("/boot", "bootloader.js").readData();
+    bootloader = new Function(await bootloader.text());
     await bootloader();
-    window.currentUsr = "root";
+    
+    
 
     //await window.pok.executeFile("/usr/bin/bootimg.js");
-    await window.pok.executeFile("/boot/lib.js");
-    await window.pok.clear();
+    await paperOS.executeFile("/boot", "lib.js");
+    document.body.innerHTML = "";
 
-    document.body.innerHTML += `<paperos-card applicationLocation = '/usr/share/welcome/index.html'></paperos-card>`;
-    window.pok.executeFile("/usr/share/posh/lib/poshInit.js");
+    await paperOS.executeFile("/usr/share/welcome","main.js");
+    await paperOS.executeFile("/usr/share/posh/lib", "poshInit.js");
+
 })();

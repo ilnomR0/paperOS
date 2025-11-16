@@ -21,6 +21,9 @@ export class FileSystem {
             constructor(location, name) {
                 super(self, location, name);
             }
+            static constructFromFull(locationFull){
+                return File.constructFromFull(self, locationFull);
+            }
         }
 
         this.name = name;
@@ -29,13 +32,11 @@ export class FileSystem {
          */
         this.PFS;
         //create and/or open a cache system
-        (async () => {
-        })()
 
-
-
+        this.fresh = false;
     }
     async initFS(){
+        await new Promise(async (resolve, reject)=>{
             this.cacheFS = await caches.open(this.name);
 
             //set up indexed DB for true structure
@@ -44,18 +45,27 @@ export class FileSystem {
 
             req.onerror = async (e) => {
 
-                console.error(`ERROR:`, e.target.error?.message);
+                reject(new Error(`ERROR:`+ e.target.error?.message));
             }
             req.onupgradeneeded = async (e) => {
                 this.PFS = e.target.result;
                 console.log("upgrade required");
                 this.PFS.createObjectStore(this.name, {keyPath: "location"});
+                this.fresh = true;
             }
             req.onsuccess = async (e) => {
                 this.PFS = e.target.result;
                 console.log(`successfully loaded `, this.name);
-            }
 
+                resolve(e.target.result);
+            }
+        });
+
+        if(this.fresh){
+            let rootFolder = new this.Folder("/", "/");
+            await rootFolder.init();
+
+        }
     }
 
     static async progressFetch(URL, prgUse = (received, total, percentage, prevPercentage) => {
@@ -161,33 +171,36 @@ export class FileSystem {
         console.log(`zip file ${location}'s data: `, zipFile);
 
         let newFileSys = new FileSystem("sda");
-        await newFileSys.initFS();
-        let writeTasks = [];
-        for (let fileNum = 0; fileNum < zipLocations.length; fileNum++) {
-            await new Promise(requestAnimationFrame);
-            prgWrite(zipLocations, fileNum, zipFile);
-            let file = zipFile[zipLocations[fileNum]];
+        await newFileSys.initFS()
+            .then(async ()=>{
 
-            let fileLocation = zipLocations[fileNum].replace(/\/$/, "").split("/");
-            if (file.type == "folder") {
-                let fileName = fileLocation.pop();
-                console.log(`writing ${fileName} to ${FileSystem.formatLocation(fileLocation.join("/"))}`);
-                file = new newFileSys.Folder(FileSystem.formatLocation(fileLocation.join("/")), fileName);
-                writeTasks.push(await file.init());
-            } else if (file.type == "file") {
-                let fileName = fileLocation.pop();
-                /**
-                 *@type {File}
-                 */
-                console.log(`writing ${fileName} to ${"/"+fileLocation.join("/")}`);
+                let writeTasks = [];
+                for (let fileNum = 0; fileNum < zipLocations.length; fileNum++) {
+                    await new Promise(requestAnimationFrame);
+                    prgWrite(zipLocations, fileNum, zipFile);
+                    let file = zipFile[zipLocations[fileNum]];
 
-                file = new newFileSys.File("/"+fileLocation.join("/"), fileName);
-                writeTasks.push(await file.writeData(new Blob([zipFile[zipLocations[fileNum]].data])));
+                    let fileLocation = zipLocations[fileNum].replace(/\/$/, "").split("/");
+                    if (file.type == "folder") {
+                        let fileName = fileLocation.pop();
+                        console.log(`writing ${fileName} to ${FileSystem.formatLocation(fileLocation.join("/"))}`);
+                        file = new newFileSys.Folder(FileSystem.formatLocation(fileLocation.join("/")), fileName);
+                        writeTasks.push(await file.init());
+                    } else if (file.type == "file") {
+                        let fileName = fileLocation.pop();
+                        /**
+                         *@type {File}
+                         */
+                        console.log(`writing ${fileName} to ${"/"+fileLocation.join("/")}`);
+
+                        file = new newFileSys.File(FileSystem.formatLocation(fileLocation.join("/")), fileName);
+                        writeTasks.push(await file.writeData(new Blob([zipFile[zipLocations[fileNum]].data])));
+                    }
+
                 }
-
-        }
-            await Promise.all(writeTasks);
-            return newFileSys;
+                await Promise.all(writeTasks);
+            });
+        return newFileSys;
     }
 }
 
