@@ -17,8 +17,17 @@ export class File {
         console.log(path, name); 
         return new File(self, path, name); 
     }
+    async init(){
+        const path = this.location.split("/").reverse();
+        let selectedFolder = await this.parent.rootDirectory.getDirectoryHandle(path.pop());
+        path.foreach(async (element, index)=>{
+            seleectedFolder = selectedFolder.getDirectoryHandle(path.pop()); 
+        });
+        }
     async writeData(data) {
-        let children = [];
+
+
+        /*let children = [];
         await new Promise((resolve, reject)=>{
             console.log("parent node", this.parent);
             let objStore = this.parent.PFS.transaction(this.parent.name, "readwrite").objectStore(this.parent.name);
@@ -43,14 +52,16 @@ export class File {
                 await this.parent.cacheFS.put(FileSystem.formatLocation(this.location + "/" + this.name), res);
                 //update the children
                 children = e.target.result.children;
-                if(!children.includes(this.name)){
-                    children.push(this.name);
+                if(!children.includes({"name":this.name, "type":"File"})){
+                    children.push({"name":this.name, "type":"File"});
                 }
                 resolve(folder.result);
             }
         });
             let objStore = this.parent.PFS.transaction(this.parent.name, "readwrite").objectStore(this.parent.name);
-            objStore.put({location:this.location, children}) 
+            objStore.put({location:this.location, children})*/ 
+
+        
     }
 
     async readData() {

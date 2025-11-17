@@ -32,10 +32,13 @@ export class FileSystem {
          */
         this.PFS;
         //create and/or open a cache system
-
+        /**
+         *@type {FileSystemDirectoryHandle}
+         */
+        this.rootDirectory;
         this.fresh = false;
     }
-    async initFS(){
+    async initFS(){/*
         await new Promise(async (resolve, reject)=>{
             this.cacheFS = await caches.open(this.name);
 
@@ -65,7 +68,12 @@ export class FileSystem {
             let rootFolder = new this.Folder("/", "/");
             await rootFolder.init();
 
-        }
+        }*/
+        
+        this.rootDirectory = navigator.storage.getDirectory();
+        this.size = navigator.storage.estimate();
+   
+
     }
 
     static async progressFetch(URL, prgUse = (received, total, percentage, prevPercentage) => {
