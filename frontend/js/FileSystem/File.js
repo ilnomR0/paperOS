@@ -9,6 +9,9 @@ export class File {
         this.parent = self;
         this.location = location;
         this.name = name;
+        this.handle;
+        this.parentHandle;
+        this.writeHandle;
     }
     static constructFromFull(self, locationFull){
         let path = FileSystem.formatLocation(locationFull).split("/");
@@ -17,16 +20,26 @@ export class File {
         console.log(path, name); 
         return new File(self, path, name); 
     }
-    async init(){
+    //creates a new file handle to mess around with
+    async init(fgetOptions = {create:true}){
         const path = this.location.split("/").reverse();
         let selectedFolder = await this.parent.rootDirectory.getDirectoryHandle(path.pop());
-        path.foreach(async (element, index)=>{
-            seleectedFolder = selectedFolder.getDirectoryHandle(path.pop()); 
+        path.forEach(async ()=>{
+            selectedFolder = await selectedFolder.getDirectoryHandle(path.pop()); 
         });
-        }
+        this.parentHandle = selectedFolder;
+        this.handle = await selectedFolder.getFileHandle(this.name, fgetOptions);
+        this.writeHandle = await this.handle.createWritable();
+    }
     async writeData(data) {
 
-
+                this.blob = data;
+                const res = new Response(this.blob, {
+                    headers: { "Content-Type": this.blob.type || "application/octet-stream" }
+                });
+                
+        this.writeHandle.write(res);
+                
         /*let children = [];
         await new Promise((resolve, reject)=>{
             console.log("parent node", this.parent);
