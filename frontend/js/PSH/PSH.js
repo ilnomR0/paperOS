@@ -52,8 +52,8 @@ export class PSH {
     resizeToContainer() {
         // compute using bounding rects (float) to avoid integer rounding errors at different zoom levels
         const containerRect = this.terminalElem.getBoundingClientRect();
-        const newRows = Math.max(0, Math.floor(containerRect.height / this.rowSize));
-        const newCols = Math.max(0, Math.floor(containerRect.width / this.columnSize));
+        const newRows = Math.max(0, Math.ceil(containerRect.height / this.rowSize));
+        const newCols = Math.max(0, Math.ceil(containerRect.width / this.columnSize));
 
         this.rows.value = newRows - 1;
         this.columns.value = newCols - 1;

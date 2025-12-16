@@ -13,53 +13,24 @@ export class Folder {
         console.log(`attaching ${this.location}/${this.name}/ to ${this.parent.name}`);
     }
 
-    async init(){
-        let children = [];
-        await new Promise((resolve, reject)=>{
-            /**
-             *@type {IDBTransaction}
-             */
-            console.log("file system", this.parent.name, this.parent);
-            let objTransaction = this.parent.PFS.transaction(this.parent.name, "readwrite");
-            let folder = objTransaction.objectStore(this.parent.name).get(this.location);
+    async init(fgetOptions = {create:false}){
+        const path = this.location.replace(/^\//gm, "").split("/").reverse();
 
-            console.log(folder);
-
-            folder.onerror = ()=>{
-                reject(new Error(folder.error));
-            }
-
-            folder.onsuccess = async (e)=>{
-                if(!folder.result && FileSystem.formatLocation(this.location) != "/"){
-                    let err = new Error(`ERROR: path "${this.location}/" does not exist\nwriting to ${this.parent.name} from ${this.name}`);
-                    window.reportError(err)//should exist in the vterm
-                    reject(err);
+            let selectedFolder = this.parent.rootDirectory;
+            path.forEach(async (e)=>{
+                console.log(e);
+                if(e!=""){
+                    selectedFolder = await selectedFolder.getDirectoryHandle(e); 
                 }
-                objTransaction.objectStore(this.parent.name).add({children:[],location:FileSystem.formatLocation(`${this.location}/${this.name}`)});
-                if(this.name != "/"){
-                    children = e.target.result.children;
-                    if(!children.includes({"name":this.name, "type":"Folder"})){
-                        children.push({"name":this.name, "type":"Folder"});
-                    }
-                    resolve(folder.result);
-                }
-            }
-        });
-        let objStore = this.parent.PFS.transaction(this.parent.name, "readwrite").objectStore(this.parent.name);
-        objStore.put({location:this.location, children}) 
-    }
+            });
+
+            this.parentHandle = selectedFolder;
+            this.handle = await selectedFolder.getDirectoryHandle(this.name, fgetOptions);
+        }
     async readChildren(){
-        return await new Promise((resolve, reject)=>{
-            let objTransaction = this.parent.PFS.transaction(this.parent.name, "readwrite");
-            let folder = objTransaction.objectStore(this.parent.name).get(this.location + "/" + this.name);
 
-            console.log(this.name);
-
-            folder.onsuccess = e => resolve(e.target.result?.children);
-            folder.onerror = e => reject(e.target.message?.error);
-        });
     }
     async delete(){
-         
+
     }
 }

@@ -49,8 +49,8 @@ function writeData(zipLocations, fileNum) {
     let spaceLength = newTerm.columns.value - (baseText.length + tailText.length);
     let barChar = "="
     let barStr = barChar.repeat((newTerm.columns.value - tailText.length - baseText.length) * (fileNum / zipLocations.length));
-    let spaceStr = " ".repeat((newTerm.columns.value - tailText.length - baseText.length) - barStr.length)
-    newTerm.say(`\n${baseText}${" ".repeat(spaceLength)}`);
+    let spaceStr = " ".repeat(Math.abs((newTerm.columns.value - tailText.length - baseText.length) - barStr.length))
+    newTerm.say(`\n${baseText}${" ".repeat(Math.abs(spaceLength))}`);
     if (newTerm.currentLine >= newTerm.rows.value - 1) {
         newTerm.currentLine = newTerm.rows.value - 2;
         newTerm.scroll();
@@ -84,31 +84,40 @@ async function start(){
 
     //getting and displaying the progress of retrieving the file paperOS.zip
     //using the fromZipFile thing
-    
+
     /**
      *@type {FileSystem}
      */
-    
+
     let sda = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
     window.sda = sda;
 
 
-    let osDatRead = await new sda.File("/", "osDat.json").readData();
-     
-    if(typeof osDatRead == "undefined"){
-        throw new Error("the selected drive is not a valid OS for the POK shell. Please insert a valid OS to boot into.");
-    }
-    osDatRead = await osDatRead.json();
-    newTerm.say(`\n\n\n\nfilesystem successfully loaded! Booting ${osDatRead.OSName}\n`);
-    
+    let osDatRead = new sda.File("/", "osDat.json");
+    await osDatRead.init().then(async ()=>{
+        
+        let inf = await osDatRead.readData();
+        console.log(await inf.json());
+
+        /*
+        osDatRead = await osDatRead.readData();
+
+        if(typeof osDatRead == "undefined"){
+            throw new Error("the selected drive is not a valid OS for the POK shell. Please insert a valid OS to boot into.");
+        }
+        osDatRead = await osDatRead.json();
+        newTerm.say(`\n\n\n\nfilesystem successfully loaded! Booting ${osDatRead.OSName}\n`);
 
 
-    let OSBoot = await sda.File.constructFromFull(osDatRead.BootLocation).readData();
-    
-    let osFn = new Function(await OSBoot.text());
-    window.onerror = null;
-    newTerm = null;
-    window.FileSystem = FileSystem;
-    osFn();
+
+        let OSBoot = await sda.File.constructFromFull(osDatRead.BootLocation).readData();
+
+        let osFn = new Function(await OSBoot.text());
+        window.onerror = null;
+        newTerm = null;
+        window.FileSystem = FileSystem;
+        osFn();*/
+    });
+
 }
 await start();

@@ -36,46 +36,17 @@ export class FileSystem {
          *@type {FileSystemDirectoryHandle}
          */
         this.rootDirectory;
-        this.fresh = false;
     }
-    async initFS(){/*
-        await new Promise(async (resolve, reject)=>{
-            this.cacheFS = await caches.open(this.name);
+    /**
+     *set's up the OPFS file system for the POK Kernel
+     */
+    async initFS(){
 
-            //set up indexed DB for true structure
+        this.rootDirectory = await navigator.storage.getDirectory();
+        this.size = await navigator.storage.estimate();
 
-            const req = window.indexedDB.open(this.name, 1);
-
-            req.onerror = async (e) => {
-
-                reject(new Error(`ERROR:`+ e.target.error?.message));
-            }
-            req.onupgradeneeded = async (e) => {
-                this.PFS = e.target.result;
-                console.log("upgrade required");
-                this.PFS.createObjectStore(this.name, {keyPath: "location"});
-                this.fresh = true;
-            }
-            req.onsuccess = async (e) => {
-                this.PFS = e.target.result;
-                console.log(`successfully loaded `, this.name);
-
-                resolve(e.target.result);
-            }
-        });
-
-        if(this.fresh){
-            let rootFolder = new this.Folder("/", "/");
-            await rootFolder.init();
-
-        }*/
-        
-        this.rootDirectory = navigator.storage.getDirectory();
-        this.size = navigator.storage.estimate();
-   
 
     }
-
     static async progressFetch(URL, prgUse = (received, total, percentage, prevPercentage) => {
         if (prevPercentage != percentage) {
             console.log(` | reading [${received} / ${total}]     ${Math.round(percentage)}%`)
@@ -182,6 +153,7 @@ export class FileSystem {
         await newFileSys.initFS()
             .then(async ()=>{
 
+                let creationTasks = [];
                 let writeTasks = [];
                 for (let fileNum = 0; fileNum < zipLocations.length; fileNum++) {
                     await new Promise(requestAnimationFrame);
@@ -189,24 +161,31 @@ export class FileSystem {
                     let file = zipFile[zipLocations[fileNum]];
 
                     let fileLocation = zipLocations[fileNum].replace(/\/$/, "").split("/");
+                    let fileName = fileLocation.pop();
+                    fileLocation = FileSystem.formatLocation(fileLocation.join("/"));
+
+                    console.log(`writing ${fileName} to ${fileLocation}`);
+                    
+                    //creation of folders
                     if (file.type == "folder") {
-                        let fileName = fileLocation.pop();
-                        console.log(`writing ${fileName} to ${FileSystem.formatLocation(fileLocation.join("/"))}`);
-                        file = new newFileSys.Folder(FileSystem.formatLocation(fileLocation.join("/")), fileName);
-                        writeTasks.push(await file.init());
+                        file = new newFileSys.Folder(fileLocation, fileName);
+                        creationTasks.push(file.init({create:true}));
+
+                        
+                        //creation of files
                     } else if (file.type == "file") {
-                        let fileName = fileLocation.pop();
-                        /**
-                         *@type {File}
-                         */
-                        console.log(`writing ${fileName} to ${"/"+fileLocation.join("/")}`);
+                        file = new newFileSys.File(fileLocation, fileName);
 
-                        file = new newFileSys.File(FileSystem.formatLocation(fileLocation.join("/")), fileName);
-                        writeTasks.push(await file.writeData(new Blob([zipFile[zipLocations[fileNum]].data])));
+                        const task = file.init({create:true}).then(async ()=>{
+                            const zipDat = zipFile[zipLocations[fileNum]].data;
+                            const blob = new Blob([zipDat]);
+
+                            return file.writeData(blob);
+                    });
+                    creationTasks.push(task);
                     }
-
                 }
-                await Promise.all(writeTasks);
+                await Promise.all(creationTasks);
             });
         return newFileSys;
     }
