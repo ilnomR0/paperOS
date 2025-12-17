@@ -96,10 +96,6 @@ async function start(){
     let osDatRead = new sda.File("/", "osDat.json");
     await osDatRead.init().then(async ()=>{
         
-        let inf = await osDatRead.readData();
-        console.log(await inf.json());
-
-        /*
         osDatRead = await osDatRead.readData();
 
         if(typeof osDatRead == "undefined"){
@@ -110,13 +106,17 @@ async function start(){
 
 
 
-        let OSBoot = await sda.File.constructFromFull(osDatRead.BootLocation).readData();
-
-        let osFn = new Function(await OSBoot.text());
+        let OSBoot = sda.File.constructFromFull(osDatRead.BootLocation);
+        await OSBoot.init().then(async ()=>{
+        OSBoot = await OSBoot.readData();
+        OSBoot = await OSBoot.text();
+        console.log(OSBoot);
+        let osFn = new Function(OSBoot);
         window.onerror = null;
         newTerm = null;
         window.FileSystem = FileSystem;
-        osFn();*/
+        osFn();
+        })
     });
 
 }

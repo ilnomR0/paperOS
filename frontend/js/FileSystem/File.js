@@ -26,7 +26,7 @@ export class File {
         const path = this.location.replace(/^\//gm, "").split("/").reverse();
 
             let selectedFolder = this.parent.rootDirectory;
-            path.forEach(async (e)=>{
+            await path.forEach(async (e)=>{
                 if(e!=""){
                     selectedFolder = await selectedFolder.getDirectoryHandle(e); 
                 }
@@ -39,9 +39,6 @@ export class File {
     async writeData(data) {
 
         this.blob = data;
-        const res = new Response(this.blob, {
-            headers: { "Content-Type": this.blob.type || "application/octet-stream" }
-        });
         console.log(this.writeHandle);
         await this.writeHandle.write(data);
         await this.writeHandle.close();

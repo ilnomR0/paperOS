@@ -8,7 +8,10 @@ class paperOS {
 
     static async executeFile(path, name, scope = {}){
         
-        const scriptContent = await new window.sda.File(path, name).readData();
+        let scriptContent = await new window.sda.File(path, name);
+        await scriptContent.init().then(async()=>{
+            scriptContent = await scriptContent.readData();
+        });
         const decoded = await scriptContent.text();
 
         const runner = new Function(...Object.keys(scope), `
