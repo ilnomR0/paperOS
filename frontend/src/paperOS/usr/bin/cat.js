@@ -4,7 +4,10 @@ let parentPath = FileSystem.formatLocation(POSH.workingDirectory + "/" + POSH.ar
 let childPath = parentPath.pop();
 parentPath = parentPath.join("/");
 
-let file = await new window.sda.File(parentPath, childPath).readData();
+let file = await new window.sda.File(parentPath, childPath);
+await file.init().then(async ()=>{
+    file = await file.readData();
+});
 if(typeof file != "undefined"){
     POSH.say(await file.text() + "\n");
 }else{

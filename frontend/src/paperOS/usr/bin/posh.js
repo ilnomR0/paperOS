@@ -1,6 +1,9 @@
 //# sourceURL=usr/bin/posh.js
-    let poshSettings = await new window.sda.File("/usr/share/posh", "posh.json").readData();
+let poshSettings = await new window.sda.File("/usr/share/posh", "posh.json")
+await poshSettings.init().then(async ()=>{
+    poshSettings = await poshSettings.readData();
     paperOS.PATH = (await poshSettings.json()).PATH;
+});  
 
 class posh {
     /**
@@ -16,78 +19,78 @@ class posh {
         this.args = [];
         this.running = true;
     }
-async say(text) {
-    const splitText = text.split(/(\x1b\[[0-9;]*m)/gm);
+    async say(text) {
+        const splitText = text.split(/(\x1b\[[0-9;]*m)/gm);
 
-    let currentSpan = document.createElement("span");
+        let currentSpan = document.createElement("span");
 
-    const applyAnsi = (codes) => {
-        currentSpan = document.createElement("span");
+        const applyAnsi = (codes) => {
+            currentSpan = document.createElement("span");
 
-        let fgMode = false;
-        let bgMode = false;
+            let fgMode = false;
+            let bgMode = false;
 
-        for (let i = 0; i < codes.length; i++) {
-            const code = parseInt(codes[i]);
+            for (let i = 0; i < codes.length; i++) {
+                const code = parseInt(codes[i]);
 
-            if (!fgMode && !bgMode) {
-                switch (code) {
-                    case 0:
-                        // reset
-                        currentSpan = document.createElement("span");
-                        break;
-                    case 1:
-                        currentSpan.style.fontWeight = "bold";
-                        break;
-                    case 3:
-                        currentSpan.style.fontStyle = "italic";
-                        break;
-                    case 4:
-                        currentSpan.style.textDecoration = "underline";
-                        break;
-                    case 5:
-                        currentSpan.classList.add("slowBlink");
-                        break;
-                    case 6:
-                        currentSpan.classList.add("rapidBlink");
-                        break;
-                    case 9:
-                        currentSpan.style.textDecoration = "line-through";
-                        break;
-                    case 38:
-                        fgMode = true;
-                        break;
-                    case 48:
-                        bgMode = true;
-                        break;
+                if (!fgMode && !bgMode) {
+                    switch (code) {
+                        case 0:
+                            // reset
+                            currentSpan = document.createElement("span");
+                            break;
+                        case 1:
+                            currentSpan.style.fontWeight = "bold";
+                            break;
+                        case 3:
+                            currentSpan.style.fontStyle = "italic";
+                            break;
+                        case 4:
+                            currentSpan.style.textDecoration = "underline";
+                            break;
+                        case 5:
+                            currentSpan.classList.add("slowBlink");
+                            break;
+                        case 6:
+                            currentSpan.classList.add("rapidBlink");
+                            break;
+                        case 9:
+                            currentSpan.style.textDecoration = "line-through";
+                            break;
+                        case 38:
+                            fgMode = true;
+                            break;
+                        case 48:
+                            bgMode = true;
+                            break;
+                    }
+                } else if (fgMode && code === 2) {
+                    const r = parseInt(codes[++i]);
+                    const g = parseInt(codes[++i]);
+                    const b = parseInt(codes[++i]);
+                    currentSpan.style.color = `rgb(${r}, ${g}, ${b})`;
+                    fgMode = false;
+                } else if (bgMode && code === 2) {
+                    const r = parseInt(codes[++i]);
+                    const g = parseInt(codes[++i]);
+                    const b = parseInt(codes[++i]);
+                    currentSpan.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                    bgMode = false;
                 }
-            } else if (fgMode && code === 2) {
-                const r = parseInt(codes[++i]);
-                const g = parseInt(codes[++i]);
-                const b = parseInt(codes[++i]);
-                currentSpan.style.color = `rgb(${r}, ${g}, ${b})`;
-                fgMode = false;
-            } else if (bgMode && code === 2) {
-                const r = parseInt(codes[++i]);
-                const g = parseInt(codes[++i]);
-                const b = parseInt(codes[++i]);
-                currentSpan.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-                bgMode = false;
+            }
+        };
+
+        for (let part of splitText) {
+            if (part.startsWith("\x1b[") && part.endsWith("m")) {
+                const codes = part.slice(2, -1).split(";");
+                applyAnsi(codes);
+            } else {
+                const span = currentSpan.cloneNode();
+                span.textContent = part;
+                this.terminal.appendChild(span);
             }
         }
-    };
-
-    for (let part of splitText) {
-        if (part.startsWith("\x1b[") && part.endsWith("m")) {
-            const codes = part.slice(2, -1).split(";");
-            applyAnsi(codes);
-        } else {
-            const span = currentSpan.cloneNode();
-            span.textContent = part;
-            this.terminal.appendChild(span);
-        }
     }
-}
 
 
     async clear() {
@@ -179,14 +182,17 @@ async say(text) {
             let executableFileLocation = "";
             let executableFileName = "";
             for (let i = 0; i < paperOS.PATH.split(":").length; i++) {
-                let fileToExec = await window.sda.File.constructFromFull(paperOS.PATH.split(":")[i] + location).readData();
+                let fileToExec = await window.sda.File.constructFromFull(paperOS.PATH.split(":")[i] + location);
+                await fileToExec.init().then(async ()=>{
+                    fileToExec = fileToExec.readData();
+                })
                 if (typeof fileToExec != "undefined") {
 
                     executableFileLocation = (paperOS.PATH.split(":")[i] + location).split("/");
                     executableFileName = executableFileLocation.pop();
                     executableFileLocation = executableFileLocation.join("/");
                     i = paperOS.PATH.split(":").length + 1;
-                
+
                 }
             }
 

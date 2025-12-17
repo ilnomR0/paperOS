@@ -2,10 +2,13 @@
 (async () => {
     //styles
     let styles = document.createElement("style");
-    let defaultStyles = await new window.sda.File("/usr/share/cards/styles", "cards.css").readData();
+    let defaultStyles = await new window.sda.File("/usr/share/cards/styles", "cards.css");
+    await defaultStyles.init().then(async ()=>{
+    defaultStyles = await defaultStyles.readData();
     styles.textContent = await defaultStyles.text();
 
     document.head.appendChild(styles);
+    });
 })();
 
 class cards extends HTMLElement {
@@ -54,8 +57,10 @@ class cards extends HTMLElement {
         this.minWidth = Number(this.getAttribute("min-width"));
         this.setAttribute("icon", this.getAttribute("icon") ?? "/usr/share/cards/images/defaultAppIcon.png");
         
-        let iconFile = await window.sda.File.constructFromFull(this.getAttribute("icon")).readData();
-
+        let iconFile = await window.sda.File.constructFromFull(this.getAttribute("icon"));
+        await iconFile.init().then(async ()=>{
+            iconFile = await iconFile.readData();
+        });
         this.icon = URL.createObjectURL(await iconFile.blob());
         this.applicationLocation = this.getAttribute("applicationLocation");
 

@@ -13,10 +13,9 @@
         </center>        
         <h3>1. Upgraded file system!</h3>
 
-        <p>We are now using a cache system, so you can store even <i>more</i> files then you could previously. Along with that; developers have an easier time accessing whatever files for their programs they would like! No longer do you have to go through window.pok.fileSystem.readFile to read files! Alongside with that; we have plans for allowing paperOS to read the files on your device; separated out into drives.<br> btw; firefox users; if you in the past have experienced any lag when using 'ls', don't worry! that's all gone now with the swith to the cache system. Enjoy browsing your files with speed and efficiency!</p>
-
-        <h3>2. Added a Network Driver</h3>
-        <p>We also have plans for a web browser and other internet related tasks; this is the first major step to achiving such a thing.</p>
+        <p>We are now using something called <b>OPFS</b> (Origin Private File System). This allows us to pretty much have our own little section of your disk for reading and writing files to! In turn, this allows for <b>near native speeds</b> for reading and writing, along with a bunch of other fun things such as <i>actually being able to see how much storage you hae left</i>. We have also updated how the whole backend system works, going from old window.pok.fileSystem (a method used all the way back in posh2), to a <b>more modern class-based system.</b> These changes allow developers to work even faster, and users to use even faster. With this change, you can see <b>major speed boosts</b> in doing simple things such as reading and writing to files!
+        <h3>2. Moar POSH commands!</h3>
+        <p>As a result of upgrading the file system, some things that used to be trivial are now as easy as 123!</p>
         <center>
             <button onclick="paperOS.executeFile('/usr/share/posh/lib', 'poshInit.js')">open POSH</button>
         </center>

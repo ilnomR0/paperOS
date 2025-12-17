@@ -2,11 +2,19 @@
 //background image
 let settingsFile = await window.sda.File.constructFromFull(window.paperOS.currentUser == "root" ?
     "/root/.conf/settings.json" :
-    `/home/${window.currentUsr}/.conf/settings.json`).readData();
-let settings = await settingsFile.json();
+    `/home/${window.currentUsr}/.conf/settings.json`);
+let settings;
+await settingsFile.init().then(async ()=>{
+    settingsFile = await settingsFile.readData();
+    settings = await settingsFile.json();
+});
 
-let imageFile = await window.sda.File.constructFromFull(settings.background).readData();
-let imageBin = await URL.createObjectURL(await imageFile.blob());
+let imageFile = await window.sda.File.constructFromFull(settings.background);
+let imageBin;
+await imageFile.init().then(async ()=>{
+    imageFile = await imageFile.readData();
+    imageBin = await URL.createObjectURL(await imageFile.blob());
+});
 
 document.body.style.backgroundImage = `URL(${imageBin}`;
 document.body.style.backgroundSize = 'cover';
@@ -17,8 +25,12 @@ document.body.style.backgroundAttachment = "fixed";
 
 (async () => {
     let style = document.createElement("style");
-    let deskCSSfile = await new window.sda.File("/usr/share/desk", "desk.css").readData();
-    style.textContent = await deskCSSfile.text();
+    let deskCSSfile = await new window.sda.File("/usr/share/desk", "desk.css");
+    await deskCSSfile.init().then(async ()=>{
+        deskCSSfile = await deskCSSfile.readData();
+        style.textContent = await deskCSSfile.text();
+    });
+
     document.head.appendChild(style);
     console.log("desk: ", settings);
     //let applications = await window.pok.fileSystem.readFolder(settings.desktopApps);

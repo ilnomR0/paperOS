@@ -4,7 +4,12 @@ parentLocation = parentLocation.join("/");
 
 console.log(parentLocation, childLocation);
 
-let nextFolder = await new window.sda.Folder(parentLocation, childLocation).readChildren();
+let nextFolder = await new window.sda.Folder(parentLocation, childLocation);
+
+await nextFolder.init().then(async ()=>{
+    nextFolder = await nextFolder.readChildren();
+});
+
 if (typeof nextFolder != "undefined") {
     POSH.workingDirectory += "/"+POSH.args[1];
     POSH.workingDirectory = FileSystem.formatLocation(POSH.workingDirectory);

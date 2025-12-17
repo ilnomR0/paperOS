@@ -5,10 +5,14 @@ const end = path.pop();
 path = path.join("/");
 console.log(path);
 console.log(end);
-const files = await new window.sda.Folder(path, end).readChildren();
+let files = await new window.sda.Folder(path, end)
+await files.init().then(async ()=>{
+    files = await files.readChildren();
+});
+console.log(files);
 if(typeof files != 'undefined'){
-    for (const file of files) {
-        POSH.say(`${file}\n`);
+    for await (const file of files) {
+        POSH.say(`${file.name}\n`);
     }
 }else{
     throw new Error(`cannot access '${POSH.args[1]}': No such file or directory`);

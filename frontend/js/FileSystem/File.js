@@ -22,36 +22,44 @@ export class File {
     }
     //creates a new file handle to mess around with
     async init(fgetOptions = {create:false}){
-
-        const path = this.location.replace(/^\//gm, "").split("/").reverse();
-
+            const path = FileSystem.formatLocation(this.location).replace(/^\//gm, "").split("/");
+            path.push("");
             let selectedFolder = this.parent.rootDirectory;
-            await path.forEach(async (e)=>{
-                if(e!=""){
-                    selectedFolder = await selectedFolder.getDirectoryHandle(e); 
+
+
+            for(const loc of path){
+                console.log("folder to select", loc);
+                try{
+                if(loc != ""){
+                    selectedFolder = await selectedFolder.getDirectoryHandle(loc); 
+                    console.log("selected folder: ", selectedFolder);
                 }
-            });
+                }catch(err){
+                    window.reportError(err);
+                }
+            }
 
             this.parentHandle = selectedFolder;
             this.handle = await selectedFolder.getFileHandle(this.name, fgetOptions);
             this.writeHandle = await this.handle.createWritable();
-        }
-    async writeData(data) {
+            
+    }
+    async writeData(data, options = {}) {
 
         this.blob = data;
         console.log(this.writeHandle);
-        await this.writeHandle.write(data);
+        await this.writeHandle.write(data, options);
         await this.writeHandle.close();
-}
+    }
 
-async readData() {
-    let data = await this.handle.getFile();
-    return new Response(data, {
+    async readData() {
+        let data = await this.handle.getFile();
+        return new Response(data, {
             headers:{"Content-Type": data.type || "application/octet-stream"}
         });
     }
 
-async delete() {
-    this.parent.cacheFS.delete(this.location + "/" + this.name);
-}
+    async delete() {
+        this.parent.cacheFS.delete(this.location + "/" + this.name);
+    }
 }

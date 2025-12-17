@@ -6,24 +6,28 @@ while (POSH.running) {
         let historyPtr = -1;
         let prompt = await POSH.question.text("", function (span, resolve) {
             return async function (event) {
+                
+                let histFile = await window.sda.File.constructFromFull(POSH.HISTFILE);
+                await histFile.init().then(async ()=>{
+                    histFile = await histFile.readData();
+                })
+
                 if (document.activeElement === span && event.key === 'Tab') {
                     event.preventDefault(); // Prevent switching focus
                 } else if ((event.key === 'Enter' && event.shiftKey === false)) {
-
-                    event.preventDefault(); // Prevent newline character
                     span.contentEditable = false; // Disable contenteditable
-                    resolve(span.innerText.trim()); // Resolve the promise with the innerText
+                    event.preventDefault(); // Prevent newline character
+                    span.innerText = span.innerText.trim();
+                    resolve(span.innerText); // Resolve the promise with the innerText
                 } else if ((event.key === 'c' && event.shiftKey === false && event.ctrlKey === true)) {
                     return;
                 } else if ((event.key === "ArrowUp")) {
-                    let histFile = await window.sda.File.constructFromFull(POSH.HISTFILE).readData();
                     histFile = (await histFile.text()).split("\n");
                     historyPtr < histFile.length - 1 ? historyPtr++ : historyPtr;
                     histFile.unshift("");
                     console.log(histFile, historyPtr);
                     span.innerText = histFile[historyPtr];
                 } else if ((event.key === "ArrowDown")) {
-                    let histFile = await window.sda.File.constructFromFull(POSH.HISTFILE).readData();
                     histFile = (await histFile.text()).split("\n");
                     historyPtr > 0 ? historyPtr-- : historyPtr;
                     histFile.unshift("");
@@ -35,7 +39,9 @@ while (POSH.running) {
         POSH.say("\n");
 
         let historyFile = await window.sda.File.constructFromFull(POSH.HISTFILE);
-        await historyFile.writeData(prompt + "\n" + await historyFile.readData().then(async e=>await e.text()));
+        await historyFile.init().then(async ()=>{
+            await historyFile.writeData(prompt+"\n", {keepExistingData:true});
+        });
 
         POSH.args = [...prompt.matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map(match => match[1] ?? match[2] ?? match[3]);
 

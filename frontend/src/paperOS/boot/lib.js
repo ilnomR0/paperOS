@@ -4,7 +4,10 @@
     
     paperOS.Cards = {
         parseDocument: async (location, ...defaultCSS) => {
-            let docFile = await window.sda.File.constructFromFull(location).readData();
+            let docFile = await window.sda.File.constructFromFull(location);
+            await docFile.init().then(async()=>{
+                docFile = await docFile.readData();
+            });
             let doc = await new DOMParser().parseFromString(await docFile.text(), "text/html");
             if(defaultCSS){
                 for(let cssDefault of defaultCSS){
@@ -21,12 +24,19 @@
             for (const link of linkTags) {
                 const href = link.getAttribute("href");
                 if (!href.startsWith("http")) {
-                    const file = await window.sda.File.constructFromFull(href).readData();
-
+                    let file = await window.sda.File.constructFromFull(href);
+                    await file.init().then(async ()=>{
+                        file = await file.readData();
+                    });
                     let modifiedCSS = await file.text();
                     const styleURLs = [...modifiedCSS.matchAll(/url\(["']?(.*?)["']?\)/gmi)];
                     for (const match of styleURLs) {
-                        const originalPath = await window.sda.File.constructFromFull(match[1]).readData();
+                        let originalPath = await window.sda.File.constructFromFull(match[1]);
+                       
+                    await originalPath.init().then(async ()=>{
+                        originalPath = await originalPath.readData();
+                    });
+
                         console.log(originalPath);
                         const blob = URL.createObjectURL(await originalPath.blob());
                         modifiedCSS = modifiedCSS.replaceAll(match[0], `url("${blob}")`);
@@ -41,8 +51,13 @@
                     let modifiedCSS = style.textContent;
                     const styleURLs = [...style.innerText.matchAll(/url\(["']?(.*?)["']?\)/gmi)];
                     for (const match of styleURLs) {
-                        const originalPath = await window.sda.File.constructFromFull(match[1]).readData();
-                        console.log(originalPath);
+                        let originalPath = await window.sda.File.constructFromFull(match[1]);
+
+                    await originalPath.init().then(async ()=>{
+                        originalPath = await originalPath.readData();
+                    });
+
+                    console.log(originalPath);
                         const blob = URL.createObjectURL(await originalPath.blob());
                         modifiedCSS = modifiedCSS.replaceAll(match[0], `url("${blob}")`);
                     }

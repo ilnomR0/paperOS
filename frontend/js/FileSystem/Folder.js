@@ -14,21 +14,21 @@ export class Folder {
     }
 
     async init(fgetOptions = {create:false}){
-        const path = this.location.replace(/^\//gm, "").split("/").reverse();
+        const path = FileSystem.formatLocation(this.location).replace(/^\//gm, "").split("/");
 
             let selectedFolder = this.parent.rootDirectory;
-            path.forEach(async (e)=>{
-                console.log(e);
-                if(e!=""){
-                    selectedFolder = await selectedFolder.getDirectoryHandle(e); 
-                }
-            });
 
+        for(const loc of path){
+            console.log("selected directory: ", loc);
+            if(loc!=""){
+                selectedFolder = await selectedFolder.getDirectoryHandle(loc);
+            }
+        }
             this.parentHandle = selectedFolder;
-            this.handle = await selectedFolder.getDirectoryHandle(this.name, fgetOptions);
+            this.handle = this.name == "" ? selectedFolder : await selectedFolder.getDirectoryHandle(this.name, fgetOptions);
         }
     async readChildren(){
-
+        return await this.handle.values();
     }
     async delete(){
 
