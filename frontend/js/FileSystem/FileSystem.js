@@ -2,14 +2,13 @@ import * as fflate from "https://cdn.skypack.dev/fflate@0.8.2?min";
 import { File } from "./File.js";
 import { Folder } from "./Folder.js";
 
-//filesystem class. An interface for managing files within the indexedDB storage system. 
+/** This class is for managing files and folders within the given OPFS System*/
 export class FileSystem {
-    //FileSystem library imports. All collected over here
 
     /**
-     * @type {File};
+     * Constructs the fileSystem with a given name. (For example SDA, SDB, etc etc).
+     * @param {string} name the name of the given filesystem 
      */
-
     constructor(name) {
         const self = this;
         this.Folder = class extends Folder {
@@ -47,6 +46,12 @@ export class FileSystem {
 
 
     }
+    /**
+     *  Fetches something from the given URL and gives out a formatted progress system of how it is going
+     *  @param {URLPattern} URL the URL that you wish to source from
+     *  @param {(received: any, total: any, percentage: any, prevPercentage: any) => void} [prgUse] The callback that get's called as it reads the file
+     *  @param {() => void} [prgDone] The callback that get's called when it has finished reading the file
+     */
     static async progressFetch(URL, prgUse = (received, total, percentage, prevPercentage) => {
         if (prevPercentage != percentage) {
             console.log(` | reading [${received} / ${total}]     ${Math.round(percentage)}%`)
@@ -94,7 +99,11 @@ export class FileSystem {
         return finalResponse;
 
     }
-    //formatLocation. For formatting a string. For example, an input of "/usr/bin/../.." would format to "/"
+    /**
+     *Formats a given location down to be the true path
+     *@param {string} location The given location to format
+     @example let's say you wish to get the true location of "/usr/bin/../..". Call this function, and you get "/"
+     */
     static formatLocation(location) {
         location = String(location).replace(/(.*\/)\//gm, "/");
             const parts = location.split("/");
@@ -115,8 +124,13 @@ export class FileSystem {
             return "/" + stack.join("/");
         }
 
-    //from zip file. Creates a new FileSystem based off of a zip file. 
-
+    /**
+     *Creates a new FileSystem object from a simple zip file.
+     * @param {string} location the URL to be unzipping from
+     *  @param {(received: any, total: any, percentage: any, prevPercentage: any) => void} [prgUseFetch] The callback that get's called as it reads the file
+     *  @param {() => void} [prgDoneFetch] The callback that get's called when it has finished reading the file
+     * @param {(zipLocations: any, fileNum: any) => void} [prgWrite] 
+     */
     static async fromZipFile(location, prgUseFetch, prgDoneFetch, prgWrite = (zipLocations, fileNum) => {
         console.log(`writing to indexedDB ${zipLocations[fileNum]}   [${fileNum}/${zipLocations.length}]`);
     }) {

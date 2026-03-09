@@ -85,11 +85,9 @@ async function start(){
     //getting and displaying the progress of retrieving the file paperOS.zip
     //using the fromZipFile thing
 
-    /**
-     *@type {FileSystem}
-     */
-
+    /** @type {FileSystem}*/
     let sda = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
+    /** @type {FileSystem} */
     window.sda = sda;
 
 

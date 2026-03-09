@@ -1,7 +1,9 @@
 
 //BIOS class: This is the Basic Input Output System for POSH. This is to interface javascript with HTML and CSS.
 //This is also for file management and the like. 
-
+/**
+ * this class is for doing Basic Input and Output. This has been ruled out in favor of the PSH system. 
+ */
 export class BIOS {
   constructor(fileSystem){
     this.textBuffer = document.getElementById("body");

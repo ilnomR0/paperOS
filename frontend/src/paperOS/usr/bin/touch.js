@@ -1,4 +1,8 @@
-    POSH.say(POSH.workingDirectory + POSH.args[1] + "\n");
-    await window.pok.fileSystem.createFile(POSH.workingDirectory + POSH.args[1]);
-    await window.pok.fileSystem.writeFile(POSH.workingDirectory  + POSH.args[1], window.pok.encoder.encode(""));
-    await POSH.say(POSH.workingDirectory + POSH.args[1] + "\n");
+//# sourceURL=usr/bin/touch.js
+
+let parentPath = FileSystem.formatLocation(POSH.workingDirectory + "/" + POSH.args[1]).split("/");
+let childPath = parentPath.pop();
+parentPath = parentPath.join("/");
+
+let file = await new window.sda.File(parentPath, childPath);
+await file.init({create:true});

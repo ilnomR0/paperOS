@@ -1,1 +1,1 @@
-POSH.say( POSH.args[1] + "\n");
+OSH.say( POSH.args[1] + "\n");

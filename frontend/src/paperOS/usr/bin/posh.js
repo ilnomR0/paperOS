@@ -1,208 +1,62 @@
 //# sourceURL=usr/bin/posh.js
-let poshSettings = await new window.sda.File("/usr/share/posh", "posh.json")
-await poshSettings.init().then(async ()=>{
-    poshSettings = await poshSettings.readData();
-    paperOS.PATH = (await poshSettings.json()).PATH;
-});  
 
-class posh {
-    /**
-     * 
-     * @param {HTMLElement} terminal 
-     */
-    constructor(wind) {
-        this.terminal = wind.getElementsByClassName("application")[0].shadowRoot.getElementById("Terminal");
-        this.wind = wind;
-        console.log(paperOS.currentUser);
-        this.currentUser = paperOS.currentUser;
-        this.workingDirectory = "/usr/bin";
-        this.args = [];
-        this.running = true;
+//get's the setttings of POSH via the posh.json file
+// let poshSettings = await new window.sda.File("/usr/share/posh", "posh.json")
+// await poshSettings.init().then(async ()=>{
+// poshSettings = await poshSettings.readData();
+// set's the PATH
+//TODO: make this be done in the .poshrc.js file (unless it's default)
+// paperOS.PATH = (await poshSettings.json()).PATH;
+// });
+//
+
+class POSH extends window.Application{
+
+    constructor(window, psh){
+        super({window, psh});
+        this.psh = psh;
+        this.window = window;
+        this.active = false;
+        this.finalStr = "";
     }
-    async say(text) {
-        const splitText = text.split(/(\x1b\[[0-9;]*m)/gm);
 
-        let currentSpan = document.createElement("span");
-
-        const applyAnsi = (codes) => {
-            currentSpan = document.createElement("span");
-
-            let fgMode = false;
-            let bgMode = false;
-
-            for (let i = 0; i < codes.length; i++) {
-                const code = parseInt(codes[i]);
-
-                if (!fgMode && !bgMode) {
-                    switch (code) {
-                        case 0:
-                            // reset
-                            currentSpan = document.createElement("span");
-                            break;
-                        case 1:
-                            currentSpan.style.fontWeight = "bold";
-                            break;
-                        case 3:
-                            currentSpan.style.fontStyle = "italic";
-                            break;
-                        case 4:
-                            currentSpan.style.textDecoration = "underline";
-                            break;
-                        case 5:
-                            currentSpan.classList.add("slowBlink");
-                            break;
-                        case 6:
-                            currentSpan.classList.add("rapidBlink");
-                            break;
-                        case 9:
-                            currentSpan.style.textDecoration = "line-through";
-                            break;
-                        case 38:
-                            fgMode = true;
-                            break;
-                        case 48:
-                            bgMode = true;
-                            break;
-                    }
-                } else if (fgMode && code === 2) {
-                    const r = parseInt(codes[++i]);
-                    const g = parseInt(codes[++i]);
-                    const b = parseInt(codes[++i]);
-                    currentSpan.style.color = `rgb(${r}, ${g}, ${b})`;
-                    fgMode = false;
-                } else if (bgMode && code === 2) {
-                    const r = parseInt(codes[++i]);
-                    const g = parseInt(codes[++i]);
-                    const b = parseInt(codes[++i]);
-                    currentSpan.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-                    bgMode = false;
+    async appExecution(){
+        console.log("POSH session:", this);
+            this.active = true;
+            this.psh.say("Welcome to POSH V3.0!\ntype \"help\" for a list of commands\n");
+        this.psh.clear();
+            requestAnimationFrame(()=>{
+                try{
+                this.appLoop()
+                }catch(err){
+                    this.psh.say("ERR:" +err);
                 }
-            }
-        };
-
-        for (let part of splitText) {
-            if (part.startsWith("\x1b[") && part.endsWith("m")) {
-                const codes = part.slice(2, -1).split(";");
-                applyAnsi(codes);
-            } else {
-                const span = currentSpan.cloneNode();
-                span.textContent = part;
-                this.terminal.appendChild(span);
-            }
-        }
-    }
-
-
-    async clear() {
-        this.terminal.innerText = "";
-    }
-
-    exit() {
-        this.running = false;
-    }
-
-    question = {
-        bool: async () => {
-            return new Promise(resolve => {
-                function onKey(e) {
-                    if (e.key === "y") {
-                        window.removeEventListener("keypress", onKey);
-                        resolve(true);
-                    } else if (e.key === "n") {
-                        window.removeEventListener("keypress", onKey);
-                        resolve(false);
-                    }
-                }
-                window.addEventListener("keypress", onKey);
             });
-        },
-        /**
-         * 
-         * @param {string} startingText 
-         * @param {function} returnCondition
-         * @param {function} cancelCondition
-         * @param {Function} autocomplete
-         * @returns 
-         */
-        text: async (startingText, keydownFn, pasteFn) => {
-            return new Promise(resolve => {
-                // Create a content editable span
-                const span = document.createElement('span');
-                span.style.width = "1000vw";
-                span.contentEditable = true;
-                span.innerText = startingText;
-                span.style.border = '0';
-
-                let keydownHandler = keydownFn?.(span, resolve);
-                // Listen for Enter key press event
-                span.addEventListener('keydown', keydownHandler || async function (event) {
-                    if (document.activeElement === span && event.key === 'Tab') {
-                        event.preventDefault(); // Prevent switching focus
-                    } else if ((event.key === 'Enter' && event.shiftKey === false)) {
-
-                        event.preventDefault(); // Prevent newline character
-                        span.contentEditable = false; // Disable contenteditable
-                        resolve(span.textContent); // Resolve the promise with the innerText
-                    } else if ((event.key === 'c' && event.shiftKey === false && event.ctrlKey === true)) {
-                        return;
-                    }
-                });
-
-                let pasteHandler = pasteFn?.(span, resolve);
-
-                // Handle paste event
-                span.addEventListener('paste', pasteHandler || function (event) {
-                    event.preventDefault(); // Prevent default paste behavior
-
-                    // Get the pasted text from the clipboard
-                    const pastedText = (event.clipboardData || window.clipboardData).getData('text/plain');
-
-                    // Insert the sanitized text into the span
-                    document.execCommand('insertText', false, pastedText);
-                });
-
-                // Append the span to the document body
-                this.terminal.appendChild(span);
-
-                // Focus on the span for immediate input
-                span.focus();
-
-                this.wind.addEventListener('click', function (event) {
-                    // Check if the click occurred outside the span
-                    if (event.target !== span && !span.contains(event.target)) {
-                        // Focus on the span
-                        span.focus();
-                    }
-                });
-            });
+    }
+    appLoop(){
+        if(this.psh.currentKey == "Backspace"){
+            this.psh.clear();
+        }else if(this.psh.currentKey == "Escape"){
+            //kills the application when esc is pressed 
+            this.window.closeWindow();
+            this.active = false;
+        }else if(this.psh.keyActive){
+            console.log(this.psh.currentKey);
+            if(this.psh.getLine(this.psh.currentLine).innerText.length > this.psh.columns.value){
+                this.psh.say("\n");
+                this.finalStr = "";
+            }    
+            this.say(this.psh.currentKey);
+        }
+        if(this.active){
+            requestAnimationFrame(()=>this.appLoop());
         }
     }
-    async execCommand(location) {
-        try {
-            let executableFileLocation = "";
-            let executableFileName = "";
-            for (let i = 0; i < paperOS.PATH.split(":").length; i++) {
-                let fileToExec = await window.sda.File.constructFromFull(paperOS.PATH.split(":")[i] + location);
-                await fileToExec.init().then(async ()=>{
-                    fileToExec = fileToExec.readData();
-                })
-                if (typeof fileToExec != "undefined") {
-
-                    executableFileLocation = (paperOS.PATH.split(":")[i] + location).split("/");
-                    executableFileName = executableFileLocation.pop();
-                    executableFileLocation = executableFileLocation.join("/");
-                    i = paperOS.PATH.split(":").length + 1;
-
-                }
-            }
-
-            await paperOS.executeFile(executableFileLocation, executableFileName, { POSH: this });
-        } catch (error) {
-            await this.say(`\u001b[38;2;255;0;0m${location}: ${error}\n`);
-        }
-
+    say(text){
+        this.finalStr += text;
+        this.psh.say(this.finalStr);
     }
 
 }
 
-window.posh = posh;
+return POSH;

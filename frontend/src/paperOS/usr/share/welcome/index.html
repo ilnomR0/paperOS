@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Welcome!</title>
-    </head>
+   </head>
     <body style="background-color:rgba(255, 255, 255, 0.5); backdrop-filter:invert() blur(20px);">
         <center>
             <h1>welcome to paperOS V.0.2!</h1>
@@ -14,10 +14,13 @@
         <h3>1. Upgraded file system!</h3>
 
         <p>We are now using something called <b>OPFS</b> (Origin Private File System). This allows us to pretty much have our own little section of your disk for reading and writing files to! In turn, this allows for <b>near native speeds</b> for reading and writing, along with a bunch of other fun things such as <i>actually being able to see how much storage you hae left</i>. We have also updated how the whole backend system works, going from old window.pok.fileSystem (a method used all the way back in posh2), to a <b>more modern class-based system.</b> These changes allow developers to work even faster, and users to use even faster. With this change, you can see <b>major speed boosts</b> in doing simple things such as reading and writing to files!
-        <h3>2. Moar POSH commands!</h3>
-        <p>As a result of upgrading the file system, some things that used to be trivial are now as easy as 123!</p>
+        <h3>Complete application rework!</h3>
+        <p>Creating applications has never been easier! Simply create a new file, extend the Application class, and bam! you got an application. Creating windows is much more trivial nowadays, because it's all class based and separated away from the Application workflow! Whenever you used to make an application, it would open up a new window, and that window <i>was</i> part of your application. But now the window is<i>apart</i> of the application, it no longer IS the application. A good example of how applications work is by heading over to /usr/share/welcome/main.js. That is what is creating this window!</p>
+        <h3>POSH revamp!</h3>
+        <p>Long before time had a name, POSH was the thing that displayed the text, requested the user input, sent the commands; it did it all. But what if you no longer wanted to use POSH as your main shell? You would have to re-create all the calls for it, all of the input for it, the way it was displayed, everything. But now, we have separated it into 2 parts. <b>POT</b>, which stands for <i>PaperOs Terminal</i> and the tride and true <b>POSH</b>, now ACTUALLY a shell. As a result, you can mix and match with your own software, from switching POT with something else to making your own fork of POSH</p>
         <center>
-            <button onclick="paperOS.executeFile('/usr/share/posh/lib', 'poshInit.js')">open POSH</button>
+            <button id="launchPotBtn">open the POT</button>
+            <button id="launchDevBtn">open documentation</button>
         </center>
     </body>
 </html>
