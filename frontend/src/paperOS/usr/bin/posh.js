@@ -24,19 +24,6 @@ class POSH extends window.Application{
     }
     async appExecution(){
         console.log("POSH session:", this);
-            this.active = true;
-            this.psh.say("Welcome to POSH V3.0!\ntype \"help\" for a list of commands\n");
-            requestAnimationFrame(()=>{
-                try{
-                    this.appLoop()
-                }catch(err){
-                    this.psh.say("ERR:" +err);
-                }
-            });
-    }
-    appLoop(){
-	//our loop for detecting keys and such
-	    if(this.psh.currentKey == "Escape"){
         this.active = true;
         this.psh.say("Welcome to POSH V3.0!\ntype \"help\" for a list of commands\n");
         this.psh.clear();
@@ -48,6 +35,7 @@ class POSH extends window.Application{
             }
         });
     }
+
     appLoop(lifetime){
         if(!this.psh.keyActive){
             this.lastKey = "";

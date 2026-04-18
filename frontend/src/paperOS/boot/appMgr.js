@@ -10,7 +10,7 @@ class ApplicationManager{
         let app;
         return await file.init().then(async ()=>{
             app = await file.readData();
-
+            
             app = new Function(await app.text());
             return await app();
         });
