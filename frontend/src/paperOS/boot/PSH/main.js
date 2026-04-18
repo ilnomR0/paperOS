@@ -1,6 +1,6 @@
 //# sourceURL=boot/PSH/main.js
 
-//This is the very start of paperOS as a whole
+//This is the very start of redactedOS as a whole. Or if you decide to fork it cuz u don't like redactedOS... here... (plz stay we luv u :3)
 (async () => {
 
     window.envVariables = {};
@@ -18,11 +18,11 @@
 
 
         //await window.pok.executeFile("/usr/bin/bootimg.js");
-        //await paperOS.executeFile("/boot", "lib.js");
+        //await redactedOS.executeFile("/boot", "lib.js");
         document.body.innerHTML = "";
 
-        //await paperOS.executeFile("/usr/share/welcome","main.js");
-        //await paperOS.executeFile("/usr/share/posh/lib", "poshInit.js");
+        //await redactedOS.executeFile("/usr/share/welcome","main.js");
+        //await redactedOS.executeFile("/usr/share/posh/lib", "poshInit.js");
 
         //initializes the paperos-card HTML tag to be used globally. 
         let cards = await ApplicationManager.initApplication("/usr/bin/cards.js");
