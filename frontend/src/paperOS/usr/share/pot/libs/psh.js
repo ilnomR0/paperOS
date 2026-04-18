@@ -30,6 +30,10 @@ class PSH {
         /** @type {number} This defines the line position that the scroll effect will take place */
         this.scrollPos = this.rows.value;
 
+        this.keyPressed = {};
+        this.keyRep = false;
+        this.currentKey = "";
+        this.keyActive = false;
         // Create a hidden measurement span so we get fractional pixel sizes (avoids rounding issues at different zoom levels)
         const meas = document.createElement("span");
         meas.style.position = "absolute";
@@ -71,12 +75,14 @@ class PSH {
             this.keyPressed[e.key] = {keyData:e, active:true}; 
             this.currentKey = e.key;
             this.keyActive = true;
+            this.keyRep = e.repeat;
             //this.say(this.currentKey);
             //console.log(e);
         });
         this.terminalText.addEventListener("keyup", (e)=>{
             this.keyPressed[e.key] = {keyData:e, active:false}; 
             this.keyActive = false;
+            this.keyRep = e.repeat;
         });
 
         element.appendChild(this.terminalText);
@@ -181,7 +187,7 @@ class PSH {
 
         //if there is a new line, then use it and print
         for (let i = 1; i < lines.length; i++) {
-            if (this.currentLine < this.scrollPos) {
+            if (this.currentLine+1 < this.scrollPos) {
                 this.currentLine++;
             } else {
                 this.scroll();

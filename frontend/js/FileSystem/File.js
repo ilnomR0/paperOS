@@ -18,8 +18,6 @@ export class File {
         this.handle;
         /** @type {FileSystemDirectoryHandle} The directory that this file exists in */
         this.parentHandle;
-        /** @type {FileSystemWritableFileStream} The writing stream for writing to the file */
-        this.writeHandle;
     }
     /**
     * This  function constructs A whole file object based off of the full path. No need to separate the location from the name.
@@ -57,7 +55,6 @@ export class File {
 
             this.parentHandle = selectedFolder;
             this.handle = await selectedFolder.getFileHandle(this.name, fgetOptions);
-            this.writeHandle = await this.handle.createWritable();
             
     }
     /**
@@ -66,11 +63,12 @@ export class File {
     * @param {{}} [options={}] The options that the writing handle is to use
     */
     async writeData(data, options = {}) {
-
+        /** @type {FileSystemWritableFileStream} The writing stream for writing to the file */
+        const writeHandle = await this.handle.createWritable();
         this.blob = data;
         console.log(this.writeHandle);
-        await this.writeHandle.write(data, options);
-        await this.writeHandle.close();
+        await writeHandle.write(data, options);
+        await writeHandle.close();
     }
 
     /**
