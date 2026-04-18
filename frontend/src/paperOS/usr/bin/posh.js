@@ -22,7 +22,6 @@ class POSH extends window.Application{
         this.blacklist = ["Shift", "Meta", "Control", "Alt", "Escape"];
         this.psh.resizeToContainer();
     }
-
     async appExecution(){
         console.log("POSH session:", this);
         this.active = true;

@@ -19,8 +19,11 @@ class PSH {
         this.terminalElem = document.createElement("div");
         /** @type {HTMLInputElement} this is for text input*/
         this.terminalText = document.createElement("input");
+        /** @type {HTMLDivElement} the virtual cursor that wanders around */ 
+        this.terminalVCursor = document.createElement("div");
         /** @type {{value:number}} The number of rows in characters*/
-        this.rows = { value: rows - 1 }; /** @type {{value:number}} The number of columns in characters*/
+        this.rows = { value: rows - 1 }; 
+        /** @type {{value:number}} The number of columns in characters*/
         this.columns = { value: columns - 1 };
         /** @type {number} the current line position, is a pointer referencing any line from 0 to n, where n is the number of rows the terminal has*/
         this.currentLine = 0;
@@ -65,6 +68,7 @@ class PSH {
 
         element.appendChild(this.terminalElem);
         element.appendChild(this.terminalText);
+        element.appendChild(this.terminalVCursor);
         console.log("selected terminal: ",this.terminalElem); 
         //init some keypress functions
         this.terminalText.addEventListener("keydown", (e)=>{
