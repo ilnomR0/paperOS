@@ -19,24 +19,21 @@ class POSH extends window.Application{
         this.active = false;
         this.finalStr = "";
     }
-
     async appExecution(){
         console.log("POSH session:", this);
             this.active = true;
             this.psh.say("Welcome to POSH V3.0!\ntype \"help\" for a list of commands\n");
-        this.psh.clear();
             requestAnimationFrame(()=>{
                 try{
-                this.appLoop()
+                    this.appLoop()
                 }catch(err){
                     this.psh.say("ERR:" +err);
                 }
             });
     }
     appLoop(){
-        if(this.psh.currentKey == "Backspace"){
-            this.psh.clear();
-        }else if(this.psh.currentKey == "Escape"){
+	//our loop for detecting keys and such
+	    if(this.psh.currentKey == "Escape"){
             //kills the application when esc is pressed 
             this.window.closeWindow();
             this.active = false;

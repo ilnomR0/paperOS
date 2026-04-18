@@ -22,3 +22,12 @@ ATTRIBUTES extends HTMLElement:
                             icon can be displayed. From the tiny little icon in
                             the corner of the app; to the Ruler.
 --------------------------------------------------------------------------------
+
+{{{
+formatType:header,
+section:1,
+title:"cards",
+author:"Josef C",
+dateWritten:17/04/2026,
+type:"javascript"
+}}}
