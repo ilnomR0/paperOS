@@ -13,24 +13,19 @@
  *     3. Paper Os SHell
  */
 
-//get's the setttings of POSH via the posh.json file
-// let poshSettings = await new window.sda.File("/usr/share/posh", "posh.json")
-// await poshSettings.init().then(async ()=>{
-// poshSettings = await poshSettings.readData();
-// set's the PATH
-//TODO: make this be done in the .poshrc.js file (unless it's default)
-// paperOS.PATH = (await poshSettings.json()).PATH;
-// });
-//
-
-class POSH extends window.Application{
+class POSH extends Application{
 
     constructor(window, popt){
-        super({window, popt});
-        this.popt = popt;
-        this.window = window;
+        if(typeof(window.appName) != "undefined" && window.appName == "POSH"){
+            super({window:(window.window), popt:(window.popt)}, "POSH");
+            this.popt = window.popt;
+            this.window = window.window;
+        }else{
+            super({window, popt},"POSH");
+            this.popt = popt;
+            this.window = window;
+        }
         this.active = false;
-
         this.popt.resizeToContainer();
 
         this.blacklist = ["Shift", "Meta", "Control", "Alt", "Escape"];
@@ -61,43 +56,40 @@ class POSH extends window.Application{
             }
         });
     }
-    execCommand(){
+    async execCommand(){
+        if(this.commandBuffer == ""){
+            return;
+        }
         //splits up the command
-        const formattedArgs = [...this.commandBuffer.matchAll(/(\x60.*?\x60)|(\x27.*?\x27)|(\x22.*?\x22)|(\S+)/gm)].map(match => match[1] ?? match[2] ?? match[3] ?? match[4]); 
+        const argv = [...this.commandBuffer.matchAll(/(\x60.*?\x60)|(\x27.*?\x27)|(\x22.*?\x22)|(\S+)/gm)].map(match => match[1] ?? match[2] ?? match[3] ?? match[4]); 
         //reserves error and success
         let error;
         let success;
         //goes through every command in path, one found it says it succeeded and leaves.
-        this.env.path.split(":").forEach(async (binPath)=>{
+        for(const binPath of this.env.path.split(":")){
             try{
-                const appMgr = await ApplicationManager.initApplication(`${binPath}${formattedArgs[0]}.js`);
-                const app = new appMgr(...formattedArgs);
-                await app.executeApp();   
+                const appMgr = await ApplicationManager.initApplication(`${binPath}/${argv[0]}.js`);
+                const POSHapp = new appMgr(this,argv);
+                await POSHapp.executeApp();   
                 success = true;
-                throw BreakException;
+                break;
             }catch(err){
                 error = err;
-            }finally{
-                //if it never succeeded, then it failed. 
-                if(!success){
-                    this.say(`ERROR POSH: ${error}\n${this.tag}`);
-                }
             }
-        });  
-        this.commandBuffer = "";
+            if(!success){
+                this.say(`ERROR POSH: ${error}\n${this.tag}`);
+                console.error(error);
+            }
+        }
     }
-    appLoop(lifetime){
+    async appLoop(lifetime){
         if(!this.popt.keyActive){
             this.lastKey = "";
         }
-        if(this.popt.currentKey == "Escape"){
-            //kills the application when esc is pressed 
-            this.window.closeWindow();
-            this.active = false;
-        }else if(this.popt.keyActive && this.popt.currentKey != this.lastKey || this.popt.keyRep){
+        if(this.popt.keyActive && this.popt.currentKey != this.lastKey || this.popt.keyRep){
 
             if(this.popt.currentKey == "Backspace"){
-                if(this.fTextBuffer.length > this.tag.length){
+                if(this.commandBuffer.length >= 1){
                     if(this.textBuffer.length <= 0){
                         this.say(" ");
                         this.popt.currentLine--;
@@ -106,17 +98,17 @@ class POSH extends window.Application{
                     this.textBuffer = this.textBuffer.slice(0, Math.max(this.textBuffer.length-1, 0));
                     this.commandBuffer = this.commandBuffer.slice(0, Math.max(this.commandBuffer.length-1, 0));
                     this.fTextBuffer = this.fTextBuffer.slice(0, Math.max(this.fTextBuffer.length-1, 0));
-                this.say(this.textBuffer);
+                    this.say(this.textBuffer);
                 }
             }else if(this.popt.currentKey == "Enter"){
-                this.execCommand();
+                this.say("\n");
+                await this.execCommand();
                 this.textBuffer = this.tag;
                 this.fTextBuffer = this.tag;
-                this.say("\n"+this.textBuffer);
+                this.commandBuffer = "";
             }else if(this.blacklist.includes(this.popt.currentKey)){
 
             }else{
-
                 if(this.popt.getLine(this.popt.currentLine).innerText.length >= this.popt.columns.value){
                     this.popt.say("\n");
                     this.textBuffer = "";
@@ -125,21 +117,28 @@ class POSH extends window.Application{
                 this.textBuffer += this.popt.currentKey;
                 this.fTextBuffer += this.popt.currentKey;
                 this.commandBuffer+=this.popt.currentKey;
-                this.say(this.textBuffer);
             }
+            this.say(this.textBuffer);
             this.lastKey = this.popt.currentKey;
         }
 
 
         if(this.active){
-            requestAnimationFrame((lifetime)=>this.appLoop(lifetime));
+            requestAnimationFrame(async (lifetime)=>await this.appLoop(lifetime));
         }
     }
     say(text){
         this.popt.say(text);
     }
-    clear(){this.popt.clear()}
+    clear(){
+        this.popt.currentLine = 0;
+        this.popt.clear();
+    }
+    exit(){
 
+        this.window.closeWindow();
+        this.active = false;
+    }
 }
 
 return POSH;

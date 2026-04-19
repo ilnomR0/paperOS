@@ -7,5 +7,5 @@
 body{
     background-color:rgba(0, 0, 0, 0.712);
     color:white;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(56px);
 }

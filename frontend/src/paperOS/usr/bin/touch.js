@@ -1,8 +1,18 @@
 //# sourceURL=usr/bin/touch.js
 
-let parentPath = FileSystem.formatLocation(POSH.workingDirectory + "/" + POSH.args[1]).split("/");
-let childPath = parentPath.pop();
-parentPath = parentPath.join("/");
+class touch extends Application{
+    constructor(POSH, argv){
+        super({POSH, argv});
+    }
 
-let file = await new window.sda.File(parentPath, childPath);
-await file.init({create:true});
+    async appExecution(POSH, argv){
+        let parentPath = FileSystem.formatLocation(POSH.env.workingDir + "/" + argv[1]).split("/");
+        let childPath = parentPath.pop();
+        parentPath = parentPath.join("/");
+
+        let file = await new window.sda.File(parentPath, childPath);
+        await file.init({create:true});
+    } 
+}
+return touch;
+

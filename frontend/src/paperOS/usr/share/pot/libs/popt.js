@@ -28,7 +28,7 @@ class POPT {
         /** @type {HTMLElement} The selected elment to be the host for the terminal*/
         this.terminalElem = document.createElement("div");
         /** @type {HTMLInputElement} this is for text input*/
-        this.terminalText = document.createElement("input");
+        this.terminalText = document.createElement("textarea");
         /** @type {HTMLDivElement} the virtual cursor that wanders around */ 
         this.terminalVCursor = document.createElement("div");
         /** @type {{value:number}} The number of rows in characters*/
@@ -72,7 +72,7 @@ class POPT {
         this.terminalElem.onclick = ()=>{
             this.terminalText.focus();
         } 
-        this.terminalText.style.opacity = "0";
+        this.terminalText.style.opacity = "0.1";
         // generate initial rows
         this.clear();
 
@@ -87,6 +87,7 @@ class POPT {
             this.currentKey = e.key;
             this.keyActive = true;
             this.keyRep = e.repeat;
+            e.preventDefault();
             //this.say(this.currentKey);
             //console.log(e);
         });
@@ -95,6 +96,7 @@ class POPT {
             this.keyPressed[e.key] = {keyData:e, active:false}; 
             this.keyActive = false;
             this.keyRep = e.repeat;
+            e.preventDefault();
         });
 
         element.appendChild(this.terminalText);

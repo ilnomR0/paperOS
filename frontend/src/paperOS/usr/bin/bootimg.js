@@ -1,3 +1,5 @@
+//DEPRECATED
+
 (async () => {
     document.body.innerHTML = await window.pok.fileSystem.readFileText("/usr/share/bootimg/main.html");
 

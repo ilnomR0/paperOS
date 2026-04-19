@@ -1,3 +1,5 @@
+//DEPRECATED
+//TODO: update to use the modern systems.
 POSH.clear();
 let subText = "press ctrl+s to save the document, ctrl+e to exit\n";
 POSH.say(POSH.workingDirectory + POSH.args[1] + " ".repeat(POSH.charWidth - subText.length) + subText);

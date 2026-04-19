@@ -11,7 +11,7 @@ class poshRC extends window.Application{
         //the little tag that appears whenever commands are ran
         this.POSH.tag = `<span style="color:cyan;">${this.POSH.env.workingDir}</span>?<span style="color:#00ff00;">${this.POSH.env.currentUser}</span>\> `;
         //location(s) of all of the commands, (cat, ls, mkdir, whoami, etc). To add on more binary paths, add ":" followed by your path (NO SPACES)
-        this.POSH.env.path = "/usr/bin/";
+        this.POSH.env.path = "/usr/bin";
 
         //default boot parameters
         await this.POSH.clear();
