@@ -1,5 +1,5 @@
 import { FileSystem } from "./FileSystem/FileSystem.js";
-import { PSH } from "./PSH/PSH.js";
+import { POPT } from "./POPT/POPT.js";
 
 window.onerror = (message, source, lineno, colno, error)=>{
     newTerm.currentLine++;
@@ -59,17 +59,17 @@ function writeData(zipLocations, fileNum) {
     newTerm.getLine(newTerm.rows.value).innerText = `${baseText}${barStr}${spaceStr}${tailText}`;
 }
 
-window.newTerm = new PSH(document.querySelector("body"));
+window.newTerm = new POPT(document.querySelector("body"));
 
 /**
- *@type {PSH}
+ *@type {POPT}
  */
 let newTerm = window.newTerm;
 
 //creating terminal & resizing to fit screen
 async function start(){
     /**
-     *@type { PSH }
+     *@type { POPT }
      */
     newTerm.resizeToContainer();
 
