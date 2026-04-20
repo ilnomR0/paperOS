@@ -14,7 +14,7 @@ class alert extends Application{
     }
     appExecution(ctx, argv){
         this.window.document = this.window.getElementsByClassName("application")[0].shadowRoot;
-        this.window.document.innerHTML = "";
+        this.window.document.innerHTML = argv[1];
     }
 }
 

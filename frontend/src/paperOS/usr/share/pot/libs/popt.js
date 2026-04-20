@@ -73,7 +73,7 @@ class POPT {
         this.terminalElem.onclick = ()=>{
             this.terminalText.focus();
         } 
-        this.terminalText.style.opacity = "0.1";
+        this.terminalText.style.opacity = "0.0";
         // generate initial rows
         this.clear();
 
