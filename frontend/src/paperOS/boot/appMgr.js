@@ -35,7 +35,7 @@ class Application{
 
     }
     async executeApp(){
-        this.appExecution(...Object.values(this.scope));
+        await this.appExecution(...Object.values(this.scope));
     }
     /**
     * This will attach the given application to this application

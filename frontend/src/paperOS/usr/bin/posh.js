@@ -43,8 +43,12 @@ class POSH extends Application{
         const poshRC = await ApplicationManager.initApplication(`${this.env.homeDir}.poshrc.js`);
         const poshRCApp = new poshRC(this);
         await poshRCApp.executeApp();
-        this.textBuffer = this.tag;
-        this.fTextBuffer = this.tag;
+        this.formattedTag = this.tag
+            .replace("/0pwD", this.env.workingDir)
+            .replace("/0pcU", this.env.currentUser)
+
+        this.textBuffer = this.formattedTag;
+        this.fTextBuffer = this.formattedTag;
         console.log(this.textBuffer);
         this.active = true;
         this.say(this.textBuffer);
@@ -78,17 +82,22 @@ class POSH extends Application{
                 error = err;
             }
             if(!success){
-                this.say(`ERROR POSH: ${error}\n${this.tag}`);
+                this.say(`ERROR POSH: ${error}\n${this.formattedTag}`);
                 console.error(error);
             }
         }
     }
     async appLoop(lifetime){
+        this.formattedTag = this.tag
+            .replace("/0pwD", this.env.workingDir)
+            .replace("/0pcU", this.env.currentUser)
+
         if(!this.popt.keyActive){
             this.lastKey = "";
         }
-        if(this.popt.keyActive && this.popt.currentKey != this.lastKey || this.popt.keyRep){
-
+        if(this.popt.keyBuffer.length > 0){
+            let e = this.popt.keyBuffer.shift();
+            this.popt.currentKey = e.key;
             if(this.popt.currentKey == "Backspace"){
                 if(this.commandBuffer.length >= 1){
                     if(this.textBuffer.length <= 0){
@@ -104,8 +113,8 @@ class POSH extends Application{
             }else if(this.popt.currentKey == "Enter"){
                 this.say("\n");
                 await this.execCommand();
-                this.textBuffer = this.tag;
-                this.fTextBuffer = this.tag;
+                this.textBuffer = this.formattedTag;
+                this.fTextBuffer = this.formattedTag;
                 this.commandBuffer = "";
             }else if(!!this.popt.keyPressed["Control"]?.active && !!this.popt.keyPressed["v"]?.active){
                 document.addEventListener("paste", this.paste);
@@ -121,7 +130,7 @@ class POSH extends Application{
                 this.fTextBuffer += this.popt.currentKey;
                 this.commandBuffer+=this.popt.currentKey;
             }
-            this.say(this.textBuffer);
+            await this.say(this.textBuffer);
             this.lastKey = this.popt.currentKey;
         }
 
@@ -155,10 +164,10 @@ class POSH extends Application{
         this.lastKey = this.popt.currentKey;
         document.removeEventListener("paste", this.paste);
     }
-    say(text){
+    async say(text){
         this.popt.say(text);
     }
-    clear(){
+    async clear(){
         this.popt.currentLine = 0;
         this.popt.clear();
     }

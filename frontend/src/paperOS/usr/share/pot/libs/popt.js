@@ -43,6 +43,7 @@ class POPT {
         this.keyPressed = {};
         this.keyRep = false;
         this.currentKey = "";
+        this.keyBuffer = [];
         this.keyActive = false;
         // Create a hidden measurement span so we get fractional pixel sizes (avoids rounding issues at different zoom levels)
         const meas = document.createElement("span");
@@ -84,7 +85,7 @@ class POPT {
 
         this.terminalText.addEventListener("keydown", (e)=>{
             this.keyPressed[e.key] = {keyData:e, active:true}; 
-            this.currentKey = e.key;
+            this.keyBuffer.push(e);
             this.keyActive = true;
             this.keyRep = e.repeat;
             e.preventDefault();

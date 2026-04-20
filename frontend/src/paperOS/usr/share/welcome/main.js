@@ -31,6 +31,8 @@ class Welcome extends Application{
             //we can now modify different HTML elements within the document
                 this.window.document.getElementById("launchPotBtn").onclick = () => this.launchPOT();
                 this.window.document.getElementById("launchDevBtn").onclick = () => this.launchDocs();
+                this.window.document.getElementById("playSnake").onclick = () => this.playSnake();
+                this.window.document.getElementById("playMinesweeper").onclick = () => this.playMinesweeper();
         });
     }
 
@@ -46,6 +48,17 @@ class Welcome extends Application{
         let Docs = await ApplicationManager.initApplication("/usr/share/docs/main.js");
         let app = new Docs();
         app.executeApp();
+    }
+    
+    async playSnake(){
+        let snake = await ApplicationManager.initApplication("/usr/share/snake/main.js");
+        let app = new snake();
+        await app.executeApp();
+    }
+    async playMinesweeper(){
+        let snake = await ApplicationManager.initApplication("/usr/share/minesweeper/main.js");
+        let app = new snake();
+        await app.executeApp();
     }
 }
 
