@@ -34,6 +34,7 @@ class Welcome extends Application{
                 this.window.document.getElementById("playSnake").onclick = () => this.playSnake();
                 this.window.document.getElementById("playMinesweeper").onclick = () => this.playMinesweeper();
                 this.window.document.getElementById("nuke").onclick = () => this.nuke();
+                this.window.document.getElementById("fullscreen").onclick = () => this.fullscreen();
         });
     }
 
@@ -68,6 +69,9 @@ class Welcome extends Application{
         }
         console.log("Paper OS: Factory Reset Complete.");
         location.reload();
+    }
+    async fullscreen(){
+        await document.body.requestFullscreen();
     }
 }
 
