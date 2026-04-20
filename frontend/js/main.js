@@ -1,6 +1,8 @@
 import { FileSystem } from "./FileSystem/FileSystem.js";
 import { POPT } from "./POPT/POPT.js";
 
+const devMode = false;
+
 window.onerror = (message, source, lineno, colno, error)=>{
     newTerm.currentLine++;
     newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
@@ -84,29 +86,30 @@ async function start(){
 
     //getting and displaying the progress of retrieving the file paperOS.zip
     //using the fromZipFile thing
-
-    //TODO: add a developer mode flag, if it's false go ahead and properly search for the given drive.
-
-    /** @type {FileSystem}*/
-    let sda = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
-    /** @type {FileSystem} */
+    let sda = new FileSystem("sda");
+    await sda.initFS();
     window.sda = sda;
-
+    //TODO: add a developer mode flag, if it's false go ahead and properly search for the given drive.
+    if(devMode || sda.size.usage <= 40000000){
+        /** @type {FileSystem}*/
+        sda = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
+    }
     let osDatRead = new sda.File("/", "osDat.json");
     await osDatRead.init().then(async ()=>{
-        
+
         osDatRead = await osDatRead.readData();
 
         if(typeof osDatRead == "undefined"){
             throw new Error("the selected drive is not a valid OS for the POK shell. Please insert a valid OS to boot into.");
         }
-        osDatRead = await osDatRead.json();
-        newTerm.say(`\n\n\n\nfilesystem successfully loaded! Booting ${osDatRead.OSName}\n`);
 
 
 
-        let OSBoot = sda.File.constructFromFull(osDatRead.BootLocation);
-        await OSBoot.init().then(async ()=>{
+    })
+    osDatRead = await osDatRead.json();
+    newTerm.say(`\n\n\n\nfilesystem successfully loaded! Booting ${osDatRead.OSName}\n`);
+    let OSBoot = sda.File.constructFromFull(osDatRead.BootLocation);
+    await OSBoot.init().then(async ()=>{
         OSBoot = await OSBoot.readData();
         OSBoot = await OSBoot.text();
         console.log(OSBoot);
@@ -115,8 +118,6 @@ async function start(){
         newTerm = null;
         window.FileSystem = FileSystem;
         osFn();
-        })
     });
-
 }
 await start();

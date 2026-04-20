@@ -33,6 +33,7 @@ class Welcome extends Application{
                 this.window.document.getElementById("launchDevBtn").onclick = () => this.launchDocs();
                 this.window.document.getElementById("playSnake").onclick = () => this.playSnake();
                 this.window.document.getElementById("playMinesweeper").onclick = () => this.playMinesweeper();
+                this.window.document.getElementById("nuke").onclick = () => this.nuke();
         });
     }
 
@@ -59,6 +60,14 @@ class Welcome extends Application{
         let snake = await ApplicationManager.initApplication("/usr/share/minesweeper/main.js");
         let app = new snake();
         await app.executeApp();
+    }
+    async nuke(){
+        const root = await navigator.storage.getDirectory();
+        for await (const [name] of root.entries()) {
+            await root.removeEntry(name, { recursive: true });
+        }
+        console.log("Paper OS: Factory Reset Complete.");
+        location.reload();
     }
 }
 
