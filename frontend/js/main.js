@@ -90,7 +90,7 @@ async function start(){
     await sda.initFS();
     window.sda = sda;
     //TODO: add a developer mode flag, if it's false go ahead and properly search for the given drive.
-    if(devMode || sda.size.usage <= 40000000){
+    if(devMode || await FileSystem.isOpfsEmpty()){
         /** @type {FileSystem}*/
         sda = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
     }
