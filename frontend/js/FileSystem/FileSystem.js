@@ -124,6 +124,30 @@ export class FileSystem {
             return "/" + stack.join("/");
         }
 
+static async isOpfsEmpty() {
+    try {
+        // Grab the root directory of the OPFS
+        const root = await navigator.storage.getDirectory();
+        
+        // Try to read the first entry
+        for await (const [name, handle] of root.entries()) {
+            // If this loop runs even once, there is something inside
+            return false; 
+        }
+        
+        // If we get here, the loop never ran. It's completely empty.
+        return true;
+        
+    } catch (err) {
+        console.error("Failed to read OPFS:", err);
+        // Depending on your OS logic, you might want to handle this differently
+        return null; 
+    }
+}
+
+// Example usage:
+// const empty = await isOpfsEmpty();
+// if (empty) console.log("Nothing here!");
     /**
      *Creates a new FileSystem object from a simple zip file.
      * @param {string} location the URL to be unzipping from
