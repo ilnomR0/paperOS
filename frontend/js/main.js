@@ -85,11 +85,12 @@ async function start(){
     //getting and displaying the progress of retrieving the file paperOS.zip
     //using the fromZipFile thing
 
+    //TODO: add a developer mode flag, if it's false go ahead and properly search for the given drive.
+
     /** @type {FileSystem}*/
     let sda = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
     /** @type {FileSystem} */
     window.sda = sda;
-
 
     let osDatRead = new sda.File("/", "osDat.json");
     await osDatRead.init().then(async ()=>{

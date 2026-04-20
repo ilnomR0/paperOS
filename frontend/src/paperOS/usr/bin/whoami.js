@@ -3,7 +3,7 @@ class whoami extends Application{
         super({POSH});
     }
     appExecution(POSH){
-        POSH.say(POSH.currentUser + "\n");
+        POSH.say(POSH.env.currentUser + "\n");
     }
 }
 

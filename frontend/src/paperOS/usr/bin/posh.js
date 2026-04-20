@@ -16,10 +16,11 @@
 class POSH extends Application{
 
     constructor(window, popt){
-        if(typeof(window.appName) != "undefined" && window.appName == "POSH"){
+        if(window.appName == "POSH"){
             super({window:(window.window), popt:(window.popt)}, "POSH");
             this.popt = window.popt;
             this.window = window.window;
+            this.popt.clear();
         }else{
             super({window, popt},"POSH");
             this.popt = popt;
@@ -106,6 +107,8 @@ class POSH extends Application{
                 this.textBuffer = this.tag;
                 this.fTextBuffer = this.tag;
                 this.commandBuffer = "";
+            }else if(!!this.popt.keyPressed["Control"]?.active && !!this.popt.keyPressed["v"]?.active){
+                document.addEventListener("paste", this.paste);
             }else if(this.blacklist.includes(this.popt.currentKey)){
 
             }else{
@@ -124,8 +127,33 @@ class POSH extends Application{
 
 
         if(this.active){
-            requestAnimationFrame(async (lifetime)=>await this.appLoop(lifetime));
+            requestAnimationFrame(async (lifetime)=>{
+                try{
+                    await this.appLoop(lifetime)
+                }catch(err){
+                    this.popt.say("POSH ERR:" +err);
+                }
+            });
         }
+    }
+    paste(event){
+        event.preventDefault();
+
+        const clipboardTxt = (event.clipboardData || window.clipboardData).getData('text');
+
+        for(let character of clipboardTxt){
+            if(this.popt.getLine(this.popt.currentLine).innerText.length >= this.popt.columns.value){
+                this.popt.say("\n");
+                this.textBuffer = "";
+            }
+            console.log(this.fTextBuffer);
+            this.textBuffer += character;
+            this.fTextBuffer += character;
+            this.commandBuffer+=character;
+        }
+        this.say(this.textBuffer);
+        this.lastKey = this.popt.currentKey;
+        document.removeEventListener("paste", this.paste);
     }
     say(text){
         this.popt.say(text);
@@ -135,7 +163,6 @@ class POSH extends Application{
         this.popt.clear();
     }
     exit(){
-
         this.window.closeWindow();
         this.active = false;
     }
