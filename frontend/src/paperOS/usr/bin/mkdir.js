@@ -1,8 +1,18 @@
 //# sourceURL=usr/bin/mkdir.js
 
-let parentPath = FileSystem.formatLocation(POSH.workingDirectory + "/" + POSH.args[1]).split("/");
-let childPath = parentPath.pop();
-parentPath = parentPath.join("/");
+class mkdir extends Application{
+    constructor(POSH, argv){
+        super({POSH, argv});
+    }
+    async appExecution(POSH, argv){
 
-let folder = await new window.sda.Folder(parentPath, childPath);
-await folder.init({create:true});
+        let parentPath = FileSystem.formatLocation(POSH.env.workingDir + "/" + argv[1]).split("/");
+        let childPath = parentPath.pop();
+        parentPath = parentPath.join("/");
+
+        let folder = await new window.sda.Folder(parentPath, childPath);
+        await folder.init({create:true});
+    }
+}
+
+return mkdir;

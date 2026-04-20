@@ -12,9 +12,9 @@
 })();
 
 /**
-* This is the CARDS window manager. The way that this works is all via one singular HTML object. paperos-card.
-* CARDS not only manages how the windows are displayed, but also applications and their scope itself. This should be replaced by some other system, cards should simply render HTML documents. The backend structure should manage applications.
-*/
+ * This is the CARDS window manager. The way that this works is all via one singular HTML object. paperos-card.
+ * CARDS not only manages how the windows are displayed, but also applications and their scope itself. This should be replaced by some other system, cards should simply render HTML documents. The backend structure should manage applications.
+ */
 class cards extends HTMLElement {
     constructor() {
         super();
@@ -56,7 +56,10 @@ class cards extends HTMLElement {
         this.moving = false;
         /** @type {boolean} should the application be displayed in a fullscreen mode or no? */
         this.fullscreen = false;
-
+        /** @type {boolean} defines if the given window can be resized or not*/
+        this.resizable = true;
+        /** @type {boolean} defines if the given window can be moved or not*/
+        this.movable = true;
         /** @type {{*}} a map of all of the variables that can be used locally by the application. This shall be replaced by an ApplicationManager */
         this.applicationVariables = {};
 
@@ -229,32 +232,32 @@ class cards extends HTMLElement {
         });
         //what happens when you click down on the handles
         document.addEventListener("mousemove", (e) => {
-            if (!this.fullscreen) {
-                if (this.resizing.east) {
+            if (!this.fullscreen || !(this.resizable && this.movable)) {
+                if (this.resizable && this.resizing.east) {
                     this.width = e.screenX - this.oldProp.cursorX + this.oldProp.width;
-                applicationContainer.dispatchEvent(this.eventListeners.resized);
+                    applicationContainer.dispatchEvent(this.eventListeners.resized);
                 }
-                if (this.resizing.north && this.oldProp.height - (e.screenY - this.oldProp.cursorY) > this.minHeight) {
+                if (this.resizable && this.resizing.north && this.oldProp.height - (e.screenY - this.oldProp.cursorY) > this.minHeight) {
                     this.y = e.screenY + (this.oldProp.y - this.oldProp.cursorY);
                     this.height = this.oldProp.height - (e.screenY - this.oldProp.cursorY);
-                applicationContainer.dispatchEvent(this.eventListeners.resized);
-                } else if (this.resizing.north) {
+                    applicationContainer.dispatchEvent(this.eventListeners.resized);
+                } else if (this.resizable && this.resizing.north) {
                     this.height = this.oldProp.height - (e.screenY - this.oldProp.cursorY);
-                applicationContainer.dispatchEvent(this.eventListeners.resized);
+                    applicationContainer.dispatchEvent(this.eventListeners.resized);
                 }
-                if (this.resizing.west && this.oldProp.width - (e.screenX - this.oldProp.cursorX) > this.minWidth) {
+                if (this.resizable && this.resizing.west && this.oldProp.width - (e.screenX - this.oldProp.cursorX) > this.minWidth) {
                     this.x = e.screenX + (this.oldProp.x - this.oldProp.cursorX);
                     this.width = this.oldProp.width - (e.screenX - this.oldProp.cursorX);
-                applicationContainer.dispatchEvent(this.eventListeners.resized);
-                } else if (this.resizing.west) {
+                    applicationContainer.dispatchEvent(this.eventListeners.resized);
+                } else if (this.resizable && this.resizing.west) {
                     this.width = this.oldProp.width - (e.screenX - this.oldProp.cursorX);
-                applicationContainer.dispatchEvent(this.eventListeners.resized);
+                    applicationContainer.dispatchEvent(this.eventListeners.resized);
                 }
-                if (this.resizing.south) {
+                if (this.resizable && this.resizing.south) {
                     this.height = e.screenY - this.oldProp.cursorY + this.oldProp.height;
-                applicationContainer.dispatchEvent(this.eventListeners.resized);
+                    applicationContainer.dispatchEvent(this.eventListeners.resized);
                 }
-                if (this.moving) {
+                if (this.moving && this.movable) {
                     this.x = e.screenX + (this.oldProp.x - this.oldProp.cursorX);
                     this.y = e.screenY + (this.oldProp.y - this.oldProp.cursorY);
                 }
@@ -315,14 +318,14 @@ class cards extends HTMLElement {
 
     }
     /**
-    *This function is called when you wish to close the window
-    */
+     *This function is called when you wish to close the window
+     */
     closeWindow() {
         this.remove();
     }
     /**
-    *This is a toggle function for fullscreen mode.
-    */
+     *This is a toggle function for fullscreen mode.
+     */
     fullscreenWindow() {
         this.fullscreen = !this.fullscreen;
         if (this.fullscreen) {
@@ -353,10 +356,10 @@ class cards extends HTMLElement {
 
     }
     /**
-    * This function parses an HTML document to fit this local system. This allows files to access each other from within the OPFS file system, allowing for things like images and such
-    * @param {string} location the HTML document location that you wish to format
-    * @param {...string} defaultCSS Some default stylesheets that you wish to load when you parse the document.
-    */
+     * This function parses an HTML document to fit this local system. This allows files to access each other from within the OPFS file system, allowing for things like images and such
+     * @param {string} location the HTML document location that you wish to format
+     * @param {...string} defaultCSS Some default stylesheets that you wish to load when you parse the document.
+     */
     static async parseDocument(location, ...defaultCSS) {
         let docFile = await window.sda.File.constructFromFull(location);
         await docFile.init().then(async()=>{
@@ -384,6 +387,26 @@ class cards extends HTMLElement {
                 });
                 let modifiedCSS = await file.text();
                 const styleURLs = [...modifiedCSS.matchAll(/url\(["']?(.*?)["']?\)/gmi)];
+                    for (const match of styleURLs) {
+                        let originalPath = await window.sda.File.constructFromFull(match[1]);
+
+                        await originalPath.init().then(async ()=>{
+                            originalPath = await originalPath.readData();
+                        });
+
+                        //console.log(originalPath);
+                        const blob = URL.createObjectURL(await originalPath.blob());
+                        modifiedCSS = modifiedCSS.replaceAll(match[0], `url("${blob}")`);
+                    }
+
+                    const styleTag = doc.createElement("style");
+                    styleTag.textContent = modifiedCSS;
+                    link.replaceWith(styleTag);
+                }
+        }
+        for(const style of styleTags){
+            let modifiedCSS = style.textContent;
+            const styleURLs = [...style.innerText.matchAll(/url\(["']?(.*?)["']?\)/gmi)];
                 for (const match of styleURLs) {
                     let originalPath = await window.sda.File.constructFromFull(match[1]);
 
@@ -396,33 +419,13 @@ class cards extends HTMLElement {
                     modifiedCSS = modifiedCSS.replaceAll(match[0], `url("${blob}")`);
                 }
 
-                const styleTag = doc.createElement("style");
-                styleTag.textContent = modifiedCSS;
-                link.replaceWith(styleTag);
+                style.textContent = modifiedCSS;
             }
-        }
-        for(const style of styleTags){
-            let modifiedCSS = style.textContent;
-            const styleURLs = [...style.innerText.matchAll(/url\(["']?(.*?)["']?\)/gmi)];
-            for (const match of styleURLs) {
-                let originalPath = await window.sda.File.constructFromFull(match[1]);
-
-                await originalPath.init().then(async ()=>{
-                    originalPath = await originalPath.readData();
-                });
-
-                //console.log(originalPath);
-                const blob = URL.createObjectURL(await originalPath.blob());
-                modifiedCSS = modifiedCSS.replaceAll(match[0], `url("${blob}")`);
-            }
-
-            style.textContent = modifiedCSS;
-        }
 
         //console.log("after parse\n", doc.documentElement.innerHTML);
         return doc;
     }
 }
-    //finally, define it as a true element
+//finally, define it as a true element
 customElements.define("paperos-card", cards);
 return cards;

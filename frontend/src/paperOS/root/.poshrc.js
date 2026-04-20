@@ -1,11 +1,23 @@
 //# sourceURL=root/.poshrc.js
-(async()=>{
+class poshRC extends window.Application{
+    constructor(POSH){
+        super({POSH});
+    }
 
-    POSH.HISTFILE = "/root/.histfile"
+    async appExecution(POSH) {
+        //this is where all of the command history lives
+        POSH.HISTFILE = "/root/.histfile"
+        //the little tag that appears whenever commands are ran
+        //for more info on how to use tags, please site "man poshrc"
+        POSH.tag = `<span style="color:cyan;">/0pwD</span>?<span style="color:#00ff00;">/0pcU</span>\> `;
+        //location(s) of all of the commands, (cat, ls, mkdir, whoami, etc). To add on more binary paths, add ":" followed by your path (NO SPACES)
+        POSH.env.path = "/usr/bin";
 
-    await POSH.clear();
-    await POSH.say("welcome to POSH!\n");
-    await POSH.say("type \"help\" for a list of commands\n");
-    
-    await POSH.execCommand("/usr/share/posh/lib/posh.js");
-})();
+        //default boot parameters
+        await POSH.clear();
+        await POSH.say("welcome to POSH!\n");
+        await POSH.say("type \"help\" for a list of commands\n");
+    }
+}
+
+return poshRC;

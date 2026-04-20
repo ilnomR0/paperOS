@@ -22,10 +22,11 @@ class Application{
     * @param {string} appLocation the location of the application to execute
     * @param {{*}} scope a bunch of variables that can be used by the given application when it was spawned as a child process
     */
-    constructor(scope = {}){
+    constructor(scope = {}, name="unnamedApplication"){
         /** @type {Application[]} a list of child applications */
         this.childApplications = [];
         this.scope = scope;
+        this.appName = name;
     }
     /**
      *This is where the users' code is 
@@ -34,7 +35,7 @@ class Application{
 
     }
     async executeApp(){
-        this.appExecution(...Object.values(this.scope));
+        await this.appExecution(...Object.values(this.scope));
     }
     /**
     * This will attach the given application to this application

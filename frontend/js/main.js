@@ -1,5 +1,5 @@
 import { FileSystem } from "./FileSystem/FileSystem.js";
-import { PSH } from "./PSH/PSH.js";
+import { POPT } from "./POPT/POPT.js";
 
 window.onerror = (message, source, lineno, colno, error)=>{
     newTerm.currentLine++;
@@ -59,17 +59,17 @@ function writeData(zipLocations, fileNum) {
     newTerm.getLine(newTerm.rows.value).innerText = `${baseText}${barStr}${spaceStr}${tailText}`;
 }
 
-window.newTerm = new PSH(document.querySelector("body"));
+window.newTerm = new POPT(document.querySelector("body"));
 
 /**
- *@type {PSH}
+ *@type {POPT}
  */
 let newTerm = window.newTerm;
 
 //creating terminal & resizing to fit screen
 async function start(){
     /**
-     *@type { PSH }
+     *@type { POPT }
      */
     newTerm.resizeToContainer();
 
@@ -85,11 +85,12 @@ async function start(){
     //getting and displaying the progress of retrieving the file paperOS.zip
     //using the fromZipFile thing
 
+    //TODO: add a developer mode flag, if it's false go ahead and properly search for the given drive.
+
     /** @type {FileSystem}*/
     let sda = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
     /** @type {FileSystem} */
     window.sda = sda;
-
 
     let osDatRead = new sda.File("/", "osDat.json");
     await osDatRead.init().then(async ()=>{

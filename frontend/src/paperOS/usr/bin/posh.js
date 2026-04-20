@@ -1,82 +1,180 @@
 //# sourceURL=usr/bin/posh.js
 
-//get's the setttings of POSH via the posh.json file
-// let poshSettings = await new window.sda.File("/usr/share/posh", "posh.json")
-// await poshSettings.init().then(async ()=>{
-// poshSettings = await poshSettings.readData();
-// set's the PATH
-//TODO: make this be done in the .poshrc.js file (unless it's default)
-// paperOS.PATH = (await poshSettings.json()).PATH;
-// });
-//
+/**
+ *----------------------ABOUT POSH----------------------
+ * POSH is one of the oldest parts, but also the most interestng
+ * POSH stands for Paper Os Shell, and is the bridge from your keyboard
+ * to  some commands within /usr/bin, or any other executables you define
+ * in your path variable which you can change at ~/.poshrc.js. If you 
+ * are used to any of the older versions of POSH, this is not the same.
+ * POSH has now been split up into 3 main parts:
+ *     1. the PaperOsTerminal,
+ *     2. the PaperOsPseudoTermial
+ *     3. Paper Os SHell
+ */
 
-class POSH extends window.Application{
+class POSH extends Application{
 
-    constructor(window, psh){
-        super({window, psh});
-        this.psh = psh;
-        this.window = window;
+    constructor(window, popt){
+        if(window.appName == "POSH"){
+            super({window:(window.window), popt:(window.popt)}, "POSH");
+            this.popt = window.popt;
+            this.window = window.window;
+            this.popt.clear();
+        }else{
+            super({window, popt},"POSH");
+            this.popt = popt;
+            this.window = window;
+        }
         this.active = false;
-        this.finalStr = "";
-        this.lastKey = "";
+        this.popt.resizeToContainer();
+
         this.blacklist = ["Shift", "Meta", "Control", "Alt", "Escape"];
-        this.psh.resizeToContainer();
+        this.lastKey = "";
+        this.textBuffer = "";
+        this.fTextBuffer = "";
+        this.commandBuffer = ""; 
     }
     async appExecution(){
-        console.log("POSH session:", this);
+
+        this.env = structuredClone(window.envVariables); 
+        this.env.workingDir = "/usr/bin/";
+
+        const poshRC = await ApplicationManager.initApplication(`${this.env.homeDir}.poshrc.js`);
+        const poshRCApp = new poshRC(this);
+        await poshRCApp.executeApp();
+        this.formattedTag = this.tag
+            .replace("/0pwD", this.env.workingDir)
+            .replace("/0pcU", this.env.currentUser)
+
+        this.textBuffer = this.formattedTag;
+        this.fTextBuffer = this.formattedTag;
+        console.log(this.textBuffer);
         this.active = true;
-        this.psh.say("Welcome to POSH V3.0!\ntype \"help\" for a list of commands\n");
-        this.psh.clear();
+        this.say(this.textBuffer);
         requestAnimationFrame((lifetime)=>{
             try{
+                this.say(this.textBuffer);
                 this.appLoop(lifetime)
             }catch(err){
-                this.psh.say("ERR:" +err);
+                this.popt.say("ERR:" +err);
             }
         });
     }
+    async execCommand(){
+        if(this.commandBuffer == ""){
+            return;
+        }
+        //splits up the command
+        const argv = [...this.commandBuffer.matchAll(/(\x60.*?\x60)|(\x27.*?\x27)|(\x22.*?\x22)|(\S+)/gm)].map(match => match[1] ?? match[2] ?? match[3] ?? match[4]); 
+        //reserves error and success
+        let error;
+        let success;
+        //goes through every command in path, one found it says it succeeded and leaves.
+        for(const binPath of this.env.path.split(":")){
+            try{
+                const appMgr = await ApplicationManager.initApplication(`${binPath}/${argv[0]}.js`);
+                const POSHapp = new appMgr(this,argv);
+                await POSHapp.executeApp();   
+                success = true;
+                break;
+            }catch(err){
+                error = err;
+            }
+            if(!success){
+                this.say(`ERROR POSH: ${error}\n${this.formattedTag}`);
+                console.error(error);
+            }
+        }
+    }
+    async appLoop(lifetime){
+        this.formattedTag = this.tag
+            .replace("/0pwD", this.env.workingDir)
+            .replace("/0pcU", this.env.currentUser)
 
-    appLoop(lifetime){
-        if(!this.psh.keyActive){
+        if(!this.popt.keyActive){
             this.lastKey = "";
         }
-        if(this.psh.currentKey == "Escape"){
-            //kills the application when esc is pressed 
-            this.window.closeWindow();
-            this.active = false;
-        }else if(this.psh.keyActive && this.psh.currentKey != this.lastKey || this.psh.keyRep){
-
-            if(this.psh.currentKey == "Backspace"){
-                this.finalStr = this.finalStr.slice(0, Math.max(this.finalStr.length-1, 0));
-                this.say("");
-            }else if(this.psh.currentKey == "Enter"){
-                this.psh.say("\n");
-                this.finalStr = "";
-                
-            }else if(this.blacklist.includes(this.psh.currentKey)){
-                 
-            }else{
-
-                console.log(this.psh.currentKey);
-                if(this.psh.getLine(this.psh.currentLine).innerText.length > this.psh.columns.value){
-                    this.psh.say("\n");
-                    this.finalStr = "";
+        if(this.popt.keyBuffer.length > 0){
+            let e = this.popt.keyBuffer.shift();
+            this.popt.currentKey = e.key;
+            if(this.popt.currentKey == "Backspace"){
+                if(this.commandBuffer.length >= 1){
+                    if(this.textBuffer.length <= 0){
+                        this.say(" ");
+                        this.popt.currentLine--;
+                        this.textBuffer = this.popt.getLine(this.popt.currentLine).innerHTML;
+                    }
+                    this.textBuffer = this.textBuffer.slice(0, Math.max(this.textBuffer.length-1, 0));
+                    this.commandBuffer = this.commandBuffer.slice(0, Math.max(this.commandBuffer.length-1, 0));
+                    this.fTextBuffer = this.fTextBuffer.slice(0, Math.max(this.fTextBuffer.length-1, 0));
+                    this.say(this.textBuffer);
                 }
-                this.say(this.psh.currentKey);
+            }else if(this.popt.currentKey == "Enter"){
+                this.say("\n");
+                await this.execCommand();
+                this.textBuffer = this.formattedTag;
+                this.fTextBuffer = this.formattedTag;
+                this.commandBuffer = "";
+            }else if(!!this.popt.keyPressed["Control"]?.active && !!this.popt.keyPressed["v"]?.active){
+                document.addEventListener("paste", this.paste);
+            }else if(this.blacklist.includes(this.popt.currentKey)){
+
+            }else{
+                if(this.popt.getLine(this.popt.currentLine).innerText.length >= this.popt.columns.value){
+                    this.popt.say("\n");
+                    this.textBuffer = "";
+                }
+                console.log(this.fTextBuffer);
+                this.textBuffer += this.popt.currentKey;
+                this.fTextBuffer += this.popt.currentKey;
+                this.commandBuffer+=this.popt.currentKey;
             }
-            this.lastKey = this.psh.currentKey;
+            await this.say(this.textBuffer);
+            this.lastKey = this.popt.currentKey;
         }
 
 
         if(this.active){
-            requestAnimationFrame((lifetime)=>this.appLoop(lifetime));
+            requestAnimationFrame(async (lifetime)=>{
+                try{
+                    await this.appLoop(lifetime)
+                }catch(err){
+                    this.popt.say("POSH ERR:" +err);
+                }
+            });
         }
     }
-    say(text){
-        this.finalStr += text;
-        this.psh.say(this.finalStr);
-    }
+    paste(event){
+        event.preventDefault();
 
+        const clipboardTxt = (event.clipboardData || window.clipboardData).getData('text');
+
+        for(let character of clipboardTxt){
+            if(this.popt.getLine(this.popt.currentLine).innerText.length >= this.popt.columns.value){
+                this.popt.say("\n");
+                this.textBuffer = "";
+            }
+            console.log(this.fTextBuffer);
+            this.textBuffer += character;
+            this.fTextBuffer += character;
+            this.commandBuffer+=character;
+        }
+        this.say(this.textBuffer);
+        this.lastKey = this.popt.currentKey;
+        document.removeEventListener("paste", this.paste);
+    }
+    async say(text){
+        this.popt.say(text);
+    }
+    async clear(){
+        this.popt.currentLine = 0;
+        this.popt.clear();
+    }
+    exit(){
+        this.window.closeWindow();
+        this.active = false;
+    }
 }
 
 return POSH;

@@ -31,10 +31,6 @@ class Desktop extends Application{
             this.imageBin = URL.createObjectURL(await this.imageFile.blob());
         });
 
-        document.body.style.backgroundImage = `URL(${this.imageBin}`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundRepeat = 'no-repeat';
-        document.body.style.backgroundAttachment = "fixed";
 
         // application on desktops
 
@@ -53,7 +49,10 @@ class Desktop extends Application{
 
 
         document.body.appendChild(this.element);
-
+        this.element.style.backgroundImage = `URL(${this.imageBin}`;
+        this.element.style.backgroundSize = 'cover';
+        this.element.style.backgroundRepeat = 'no-repeat';
+        this.element.style.backgroundAttachment = "fixed";
     }
 
 };
