@@ -1,1 +1,33 @@
+ ----------------------------------- cards.js ----------------------------------
 
+ This binary is the initializer for the cards class. All cards are HTML objects.
+ Meaning that they can have individual custom stylization. To create a new card,
+ inside of your program simply execute
+
+ ```
+ let cardNode = document.createElement("paperos-card");
+ document.body.appendChild(cardNode);
+ ```
+
+ATTRIBUTES extends HTMLElement:
+    - width               | The width of the card object 
+    - height              | The height of the card object
+    - x                   | where the card is located along the X axis
+    - y                   | where the card is located along the Y axis
+    - min-width           | The minimum width a card can be when resizing
+    - min-height          | The minimum height a card can be when resizing
+    - applicationLocation | The HTML document location that is rendered inside
+                            of the card
+    - icon                | Location of the icon that is displayed wherever an 
+                            icon can be displayed. From the tiny little icon in
+                            the corner of the app; to the Ruler.
+--------------------------------------------------------------------------------
+
+{{{
+formatType:header,
+section:1,
+title:"cards",
+author:"Josef C",
+dateWritten:17/04/2026,
+type:"javascript"
+}}}

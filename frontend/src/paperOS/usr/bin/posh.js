@@ -1,196 +1,180 @@
-(async () => {
-    window.PATH = JSON.parse(await window.pok.fileSystem.readFileText("/usr/share/posh/posh.json")).PATH;
-})();
-class posh {
-    /**
-     * 
-     * @param {HTMLElement} terminal 
-     */
-    constructor(wind) {
-        this.terminal = wind.getElementsByClassName("application")[0].shadowRoot.getElementById("Terminal");
-        this.wind = wind;
-        console.log(window.currentUsr);
-        this.currentUser = window.currentUsr;
-        this.workingDirectory = "/usr/bin/";
-        this.args = [];
-        this.running = true;
+//# sourceURL=usr/bin/posh.js
+
+/**
+ *----------------------ABOUT POSH----------------------
+ * POSH is one of the oldest parts, but also the most interestng
+ * POSH stands for Paper Os Shell, and is the bridge from your keyboard
+ * to  some commands within /usr/bin, or any other executables you define
+ * in your path variable which you can change at ~/.poshrc.js. If you 
+ * are used to any of the older versions of POSH, this is not the same.
+ * POSH has now been split up into 3 main parts:
+ *     1. the PaperOsTerminal,
+ *     2. the PaperOsPseudoTermial
+ *     3. Paper Os SHell
+ */
+
+class POSH extends Application{
+
+    constructor(window, popt){
+        if(window.appName == "POSH"){
+            super({window:(window.window), popt:(window.popt)}, "POSH");
+            this.popt = window.popt;
+            this.window = window.window;
+            this.popt.clear();
+        }else{
+            super({window, popt},"POSH");
+            this.popt = popt;
+            this.window = window;
+        }
+        this.active = false;
+        this.popt.resizeToContainer();
+
+        this.blacklist = ["Shift", "Meta", "Control", "Alt", "Escape"];
+        this.lastKey = "";
+        this.textBuffer = "";
+        this.fTextBuffer = "";
+        this.commandBuffer = ""; 
     }
-async say(text) {
-    const splitText = text.split(/(\x1b\[[0-9;]*m)/gm);
+    async appExecution(){
 
-    let currentSpan = document.createElement("span");
+        this.env = structuredClone(window.envVariables); 
+        this.env.workingDir = "/usr/bin/";
 
-    const applyAnsi = (codes) => {
-        currentSpan = document.createElement("span");
+        const poshRC = await ApplicationManager.initApplication(`${this.env.homeDir}.poshrc.js`);
+        const poshRCApp = new poshRC(this);
+        await poshRCApp.executeApp();
+        this.formattedTag = this.tag
+            .replace("/0pwD", this.env.workingDir)
+            .replace("/0pcU", this.env.currentUser)
 
-        let fgMode = false;
-        let bgMode = false;
-
-        for (let i = 0; i < codes.length; i++) {
-            const code = parseInt(codes[i]);
-
-            if (!fgMode && !bgMode) {
-                switch (code) {
-                    case 0:
-                        // reset
-                        currentSpan = document.createElement("span");
-                        break;
-                    case 1:
-                        currentSpan.style.fontWeight = "bold";
-                        break;
-                    case 3:
-                        currentSpan.style.fontStyle = "italic";
-                        break;
-                    case 4:
-                        currentSpan.style.textDecoration = "underline";
-                        break;
-                    case 5:
-                        currentSpan.classList.add("slowBlink");
-                        break;
-                    case 6:
-                        currentSpan.classList.add("rapidBlink");
-                        break;
-                    case 9:
-                        currentSpan.style.textDecoration = "line-through";
-                        break;
-                    case 38:
-                        fgMode = true;
-                        break;
-                    case 48:
-                        bgMode = true;
-                        break;
-                }
-            } else if (fgMode && code === 2) {
-                const r = parseInt(codes[++i]);
-                const g = parseInt(codes[++i]);
-                const b = parseInt(codes[++i]);
-                currentSpan.style.color = `rgb(${r}, ${g}, ${b})`;
-                fgMode = false;
-            } else if (bgMode && code === 2) {
-                const r = parseInt(codes[++i]);
-                const g = parseInt(codes[++i]);
-                const b = parseInt(codes[++i]);
-                currentSpan.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-                bgMode = false;
+        this.textBuffer = this.formattedTag;
+        this.fTextBuffer = this.formattedTag;
+        console.log(this.textBuffer);
+        this.active = true;
+        this.say(this.textBuffer);
+        requestAnimationFrame((lifetime)=>{
+            try{
+                this.say(this.textBuffer);
+                this.appLoop(lifetime)
+            }catch(err){
+                this.popt.say("ERR:" +err);
+            }
+        });
+    }
+    async execCommand(){
+        if(this.commandBuffer == ""){
+            return;
+        }
+        //splits up the command
+        const argv = [...this.commandBuffer.matchAll(/(\x60.*?\x60)|(\x27.*?\x27)|(\x22.*?\x22)|(\S+)/gm)].map(match => match[1] ?? match[2] ?? match[3] ?? match[4]); 
+        //reserves error and success
+        let error;
+        let success;
+        //goes through every command in path, one found it says it succeeded and leaves.
+        for(const binPath of this.env.path.split(":")){
+            try{
+                const appMgr = await ApplicationManager.initApplication(`${binPath}/${argv[0]}.js`);
+                const POSHapp = new appMgr(this,argv);
+                await POSHapp.executeApp();   
+                success = true;
+                break;
+            }catch(err){
+                error = err;
+            }
+            if(!success){
+                this.say(`ERROR POSH: ${error}\n${this.formattedTag}`);
+                console.error(error);
             }
         }
-    };
+    }
+    async appLoop(lifetime){
+        this.formattedTag = this.tag
+            .replace("/0pwD", this.env.workingDir)
+            .replace("/0pcU", this.env.currentUser)
 
-    for (let part of splitText) {
-        if (part.startsWith("\x1b[") && part.endsWith("m")) {
-            const codes = part.slice(2, -1).split(";");
-            applyAnsi(codes);
-        } else {
-            const span = currentSpan.cloneNode();
-            span.textContent = part;
-            this.terminal.appendChild(span);
+        if(!this.popt.keyActive){
+            this.lastKey = "";
         }
-    }
-}
-
-
-    async clear() {
-        this.terminal.innerText = "";
-    }
-
-    exit() {
-        this.running = false;
-    }
-
-    question = {
-        bool: async () => {
-            return new Promise(resolve => {
-                function onKey(e) {
-                    if (e.key === "y") {
-                        window.removeEventListener("keypress", onKey);
-                        resolve(true);
-                    } else if (e.key === "n") {
-                        window.removeEventListener("keypress", onKey);
-                        resolve(false);
+        if(this.popt.keyBuffer.length > 0){
+            let e = this.popt.keyBuffer.shift();
+            this.popt.currentKey = e.key;
+            if(this.popt.currentKey == "Backspace"){
+                if(this.commandBuffer.length >= 1){
+                    if(this.textBuffer.length <= 0){
+                        this.say(" ");
+                        this.popt.currentLine--;
+                        this.textBuffer = this.popt.getLine(this.popt.currentLine).innerHTML;
                     }
+                    this.textBuffer = this.textBuffer.slice(0, Math.max(this.textBuffer.length-1, 0));
+                    this.commandBuffer = this.commandBuffer.slice(0, Math.max(this.commandBuffer.length-1, 0));
+                    this.fTextBuffer = this.fTextBuffer.slice(0, Math.max(this.fTextBuffer.length-1, 0));
+                    this.say(this.textBuffer);
                 }
-                window.addEventListener("keypress", onKey);
-            });
-        },
-        /**
-         * 
-         * @param {string} startingText 
-         * @param {function} returnCondition
-         * @param {function} cancelCondition
-         * @param {Function} autocomplete
-         * @returns 
-         */
-        text: async (startingText, keydownFn, pasteFn) => {
-            return new Promise(resolve => {
-                // Create a content editable span
-                const span = document.createElement('span');
-                span.style.width = "1000vw";
-                span.contentEditable = true;
-                span.innerText = startingText;
-                span.style.border = '0';
+            }else if(this.popt.currentKey == "Enter"){
+                this.say("\n");
+                await this.execCommand();
+                this.textBuffer = this.formattedTag;
+                this.fTextBuffer = this.formattedTag;
+                this.commandBuffer = "";
+            }else if(!!this.popt.keyPressed["Control"]?.active && !!this.popt.keyPressed["v"]?.active){
+                document.addEventListener("paste", this.paste);
+            }else if(this.blacklist.includes(this.popt.currentKey)){
 
-                let keydownHandler = keydownFn?.(span, resolve);
-                // Listen for Enter key press event
-                span.addEventListener('keydown', keydownHandler || async function (event) {
-                    if (document.activeElement === span && event.key === 'Tab') {
-                        event.preventDefault(); // Prevent switching focus
-                    } else if ((event.key === 'Enter' && event.shiftKey === false)) {
+            }else{
+                if(this.popt.getLine(this.popt.currentLine).innerText.length >= this.popt.columns.value){
+                    this.popt.say("\n");
+                    this.textBuffer = "";
+                }
+                console.log(this.fTextBuffer);
+                this.textBuffer += this.popt.currentKey;
+                this.fTextBuffer += this.popt.currentKey;
+                this.commandBuffer+=this.popt.currentKey;
+            }
+            await this.say(this.textBuffer);
+            this.lastKey = this.popt.currentKey;
+        }
 
-                        event.preventDefault(); // Prevent newline character
-                        span.contentEditable = false; // Disable contenteditable
-                        resolve(span.textContent); // Resolve the promise with the innerText
-                    } else if ((event.key === 'c' && event.shiftKey === false && event.ctrlKey === true)) {
-                        return;
-                    }
-                });
 
-                let pasteHandler = pasteFn?.(span, resolve);
-
-                // Handle paste event
-                span.addEventListener('paste', pasteHandler || function (event) {
-                    event.preventDefault(); // Prevent default paste behavior
-
-                    // Get the pasted text from the clipboard
-                    const pastedText = (event.clipboardData || window.clipboardData).getData('text/plain');
-
-                    // Insert the sanitized text into the span
-                    document.execCommand('insertText', false, pastedText);
-                });
-
-                // Append the span to the document body
-                this.terminal.appendChild(span);
-
-                // Focus on the span for immediate input
-                span.focus();
-
-                this.wind.addEventListener('click', function (event) {
-                    // Check if the click occurred outside the span
-                    if (event.target !== span && !span.contains(event.target)) {
-                        // Focus on the span
-                        span.focus();
-                    }
-                });
+        if(this.active){
+            requestAnimationFrame(async (lifetime)=>{
+                try{
+                    await this.appLoop(lifetime)
+                }catch(err){
+                    this.popt.say("POSH ERR:" +err);
+                }
             });
         }
     }
-    async execCommand(location) {
-        try {
-            let executableFile = "";
+    paste(event){
+        event.preventDefault();
 
-            for (let i = 0; i < window.PATH.split(":").length; i++) {
-                if (await window.pok.fileSystem.readFile(window.PATH.split(":")[i] + location)) {
-                    executableFile = window.PATH.split(":")[i] + location;
-                    i = window.PATH.split(":").length + 1;
-                }
+        const clipboardTxt = (event.clipboardData || window.clipboardData).getData('text');
+
+        for(let character of clipboardTxt){
+            if(this.popt.getLine(this.popt.currentLine).innerText.length >= this.popt.columns.value){
+                this.popt.say("\n");
+                this.textBuffer = "";
             }
-            await window.pok.executeFile(executableFile, { POSH: this });
-        } catch (error) {
-            await this.say(`\u001b[38;2;255;0;0m${error}\n`);
-            console.error(error);
+            console.log(this.fTextBuffer);
+            this.textBuffer += character;
+            this.fTextBuffer += character;
+            this.commandBuffer+=character;
         }
-
+        this.say(this.textBuffer);
+        this.lastKey = this.popt.currentKey;
+        document.removeEventListener("paste", this.paste);
     }
-
+    async say(text){
+        this.popt.say(text);
+    }
+    async clear(){
+        this.popt.currentLine = 0;
+        this.popt.clear();
+    }
+    exit(){
+        this.window.closeWindow();
+        this.active = false;
+    }
 }
 
-window.posh = posh;
+return POSH;

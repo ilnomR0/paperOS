@@ -1,4 +1,5 @@
 {
     "OSName":"paperOS",
-    "OSLogoLocation":"/boot/PSH/PaperProductions.png"
+    "BootLocation":"/boot/pKern/main.js",
+    "OSLogoLocation":"/boot/pKern/PaperProductions.png"
 }

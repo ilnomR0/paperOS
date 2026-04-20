@@ -1,7 +1,32 @@
 import { FileSystem } from "./FileSystem/FileSystem.js";
-import { POSH } from "./POSH/POSH.js";
+import { POPT } from "./POPT/POPT.js";
 
+window.onerror = (message, source, lineno, colno, error)=>{
+    newTerm.currentLine++;
+    newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.getLine(newTerm.currentLine+1).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine+1).style.color = "black";
+    newTerm.say(`${error}\n`);
+    newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.say(`src:${source}\n`);
+    newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.say(`ln#:${lineno}\n`);
+    newTerm.getLine(newTerm.currentLine).style.backgroundColor = "red";
+    newTerm.getLine(newTerm.currentLine).style.color = "black";
+    newTerm.say(`col#:${colno}\n`); 
 
+    return true;
+}
+
+/*
+window.addEventListener('error', (event)=>{
+    newTerm.getLine(0).innerText = `${event.error}`;
+    newTerm.getLine(0).style.backgroundColor = "red";
+    newTerm.getLine(0).style.color = "black";
+});*/
 //functions for creating file flavor text and information
 
 function fetchDataPrg(received, total, percentage) {
@@ -24,8 +49,8 @@ function writeData(zipLocations, fileNum) {
     let spaceLength = newTerm.columns.value - (baseText.length + tailText.length);
     let barChar = "="
     let barStr = barChar.repeat((newTerm.columns.value - tailText.length - baseText.length) * (fileNum / zipLocations.length));
-    let spaceStr = " ".repeat((newTerm.columns.value - tailText.length - baseText.length) - barStr.length)
-    newTerm.say(`\n${baseText}${" ".repeat(spaceLength)}`);
+    let spaceStr = " ".repeat(Math.abs((newTerm.columns.value - tailText.length - baseText.length) - barStr.length))
+    newTerm.say(`\n${baseText}${" ".repeat(Math.abs(spaceLength))}`);
     if (newTerm.currentLine >= newTerm.rows.value - 1) {
         newTerm.currentLine = newTerm.rows.value - 2;
         newTerm.scroll();
@@ -34,30 +59,64 @@ function writeData(zipLocations, fileNum) {
     newTerm.getLine(newTerm.rows.value).innerText = `${baseText}${barStr}${spaceStr}${tailText}`;
 }
 
-
-//creating terminal & resizing to fit screen
-
-/**
- *@type { POSH }
- */
-window.newTerm = new POSH(document.querySelector("body"));
+window.newTerm = new POPT(document.querySelector("body"));
 
 /**
- *@type {POSH}
+ *@type {POPT}
  */
 let newTerm = window.newTerm;
-newTerm.resizeToContainer();
 
-window.addEventListener("resize", newTerm.resizeToContainer.bind(newTerm));
+//creating terminal & resizing to fit screen
+async function start(){
+    /**
+     *@type { POPT }
+     */
+    newTerm.resizeToContainer();
 
 
-//some dummmy text
-newTerm.say("hello world!\nhow are you?\nprogress of reading /builds/paperOS/zip...\n\n");
+    window.addEventListener("resize", newTerm.resizeToContainer.bind(newTerm));
 
 
-//getting and displaying the progress of retrieving the file paperOS.zip
-//using the fromZipFile thing
+    //some dummmy text
+    //newTerm.say("hello world!\nhow are you?\nprogress of reading /builds/paperOS.zip...\n\n");
+    newTerm.say("Welcome!\nsearching for a drive to boot into...");
 
-window.newFS = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
-let newFS = window.newFS;
-window.testFile = new newFS.Folder("/", "root");
+
+    //getting and displaying the progress of retrieving the file paperOS.zip
+    //using the fromZipFile thing
+
+    //TODO: add a developer mode flag, if it's false go ahead and properly search for the given drive.
+
+    /** @type {FileSystem}*/
+    let sda = await FileSystem.fromZipFile("/builds/paperOS.zip", fetchDataPrg, fetchDataEnd, writeData);
+    /** @type {FileSystem} */
+    window.sda = sda;
+
+    let osDatRead = new sda.File("/", "osDat.json");
+    await osDatRead.init().then(async ()=>{
+        
+        osDatRead = await osDatRead.readData();
+
+        if(typeof osDatRead == "undefined"){
+            throw new Error("the selected drive is not a valid OS for the POK shell. Please insert a valid OS to boot into.");
+        }
+        osDatRead = await osDatRead.json();
+        newTerm.say(`\n\n\n\nfilesystem successfully loaded! Booting ${osDatRead.OSName}\n`);
+
+
+
+        let OSBoot = sda.File.constructFromFull(osDatRead.BootLocation);
+        await OSBoot.init().then(async ()=>{
+        OSBoot = await OSBoot.readData();
+        OSBoot = await OSBoot.text();
+        console.log(OSBoot);
+        let osFn = new Function(OSBoot);
+        window.onerror = null;
+        newTerm = null;
+        window.FileSystem = FileSystem;
+        osFn();
+        })
+    });
+
+}
+await start();
