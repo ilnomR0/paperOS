@@ -33,6 +33,7 @@ class Welcome extends Application{
                 this.window.document.getElementById("launchDevBtn").onclick = () => this.launchDocs();
                 this.window.document.getElementById("playSnake").onclick = () => this.playSnake();
                 this.window.document.getElementById("playMinesweeper").onclick = () => this.playMinesweeper();
+                this.window.document.getElementById("playPacman").onclick = () => this.playpacman();
                 this.window.document.getElementById("nuke").onclick = () => this.nuke();
                 this.window.document.getElementById("fullscreen").onclick = () => this.fullscreen();
         });
@@ -59,6 +60,11 @@ class Welcome extends Application{
     }
     async playMinesweeper(){
         let snake = await ApplicationManager.initApplication("/usr/share/minesweeper/main.js");
+        let app = new snake();
+        await app.executeApp();
+    }
+    async playpacman(){
+        let snake = await ApplicationManager.initApplication("/usr/share/pacman/main.js");
         let app = new snake();
         await app.executeApp();
     }
